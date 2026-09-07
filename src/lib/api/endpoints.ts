@@ -7,6 +7,8 @@ import type {
   AssetAssignmentCreateBody,
   AssetAssignmentReturnBody,
   Benefit,
+  Bill,
+  BillCreateBody,
   Branch,
   BranchCreateBody,
   BranchUpdateBody,
@@ -76,6 +78,9 @@ import type {
   UnionMembershipCreateBody,
   UnionMembershipTerminateBody,
   UnionMembershipUpdateBody,
+  Vendor,
+  VendorCreateBody,
+  VendorUpdateBody,
   WhtPayment,
 } from "@/lib/types";
 
@@ -313,6 +318,25 @@ export const generalLedgerApi = {
   trialBalance: () => apiFetch<TrialBalanceLine[]>("/general-ledger/trial-balance"),
   postJournalEntry: (body: JournalEntryCreateBody) =>
     apiFetch<LedgerEntry[]>("/general-ledger/journal-entries", { method: "POST", body }),
+};
+
+// --- vendors ---
+
+export const vendorsApi = {
+  list: () => apiFetch<Vendor[]>("/vendors"),
+  create: (body: VendorCreateBody) => apiFetch<Vendor>("/vendors", { method: "POST", body }),
+  update: (id: string, body: VendorUpdateBody) =>
+    apiFetch<Vendor>(`/vendors/${id}`, { method: "PATCH", body }),
+};
+
+// --- bills ---
+
+export const billsApi = {
+  list: () => apiFetch<Bill[]>("/bills"),
+  create: (body: BillCreateBody) => apiFetch<Bill>("/bills", { method: "POST", body }),
+  approve: (id: string) => apiFetch<Bill>(`/bills/${id}/approve`, { method: "POST", body: {} }),
+  pay: (id: string) => apiFetch<Bill>(`/bills/${id}/pay`, { method: "POST", body: {} }),
+  void: (id: string) => apiFetch<Bill>(`/bills/${id}/void`, { method: "POST", body: {} }),
 };
 
 // --- pay runs ---

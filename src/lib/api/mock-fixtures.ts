@@ -887,6 +887,8 @@ export const MOCK_FIXTURES = {
     { id: "coa-10", org_id: "org-1", code: "nsitf_payable", name: "NSITF Payable", type: "liability", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
     { id: "coa-11", org_id: "org-1", code: "wht_payable", name: "WHT Payable", type: "liability", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
     { id: "coa-12", org_id: "org-1", code: "net_pay_payable", name: "Net Pay Payable", type: "liability", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
+    { id: "coa-13", org_id: "org-1", code: "accounts_payable", name: "Accounts Payable", type: "liability", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
+    { id: "coa-14", org_id: "org-1", code: "accounts_receivable", name: "Accounts Receivable", type: "asset", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
   ],
   "/general-ledger/entries": [
     { id: "le-01", org_id: "org-1", journal_entry_id: "je-payroll-1", pay_run_id: "pr111111-0000-0000-0000-000000000001", employee_id: null, account: "payroll_expense_gross", account_name: "Payroll Expense — Gross Pay", debit_minor: 1_565_000_00, credit_minor: 0, description: "August 2026 payroll run", created_at: "2026-08-31T17:00:00Z" },
@@ -897,15 +899,32 @@ export const MOCK_FIXTURES = {
     { id: "le-06", org_id: "org-1", journal_entry_id: "je-payroll-1", pay_run_id: "pr111111-0000-0000-0000-000000000001", employee_id: null, account: "net_pay_payable", account_name: "Net Pay Payable", debit_minor: 0, credit_minor: 1_190_675_00, description: "August 2026 payroll run", created_at: "2026-08-31T17:00:00Z" },
     { id: "le-07", org_id: "org-1", journal_entry_id: "je-payment-1", pay_run_id: null, employee_id: null, account: "net_pay_payable", account_name: "Net Pay Payable", debit_minor: 1_190_675_00, credit_minor: 0, description: "Disbursed August 2026 net pay", created_at: "2026-09-01T10:00:00Z" },
     { id: "le-08", org_id: "org-1", journal_entry_id: "je-payment-1", pay_run_id: null, employee_id: null, account: "cash", account_name: "Cash", debit_minor: 0, credit_minor: 1_190_675_00, description: "Disbursed August 2026 net pay", created_at: "2026-09-01T10:00:00Z" },
+    { id: "le-09", org_id: "org-1", journal_entry_id: "je-bill-1002-approve", pay_run_id: null, employee_id: null, account: "contractor_expense", account_name: "Contractor Expense", debit_minor: 300_000_00, credit_minor: 0, description: "Bill INV-1002 approved", created_at: "2026-09-02T09:00:00Z" },
+    { id: "le-10", org_id: "org-1", journal_entry_id: "je-bill-1002-approve", pay_run_id: null, employee_id: null, account: "accounts_payable", account_name: "Accounts Payable", debit_minor: 0, credit_minor: 300_000_00, description: "Bill INV-1002 approved", created_at: "2026-09-02T09:00:00Z" },
+    { id: "le-11", org_id: "org-1", journal_entry_id: "je-bill-0998-approve", pay_run_id: null, employee_id: null, account: "contractor_expense", account_name: "Contractor Expense", debit_minor: 75_000_00, credit_minor: 0, description: "Bill INV-0998 approved", created_at: "2026-08-20T09:00:00Z" },
+    { id: "le-12", org_id: "org-1", journal_entry_id: "je-bill-0998-approve", pay_run_id: null, employee_id: null, account: "accounts_payable", account_name: "Accounts Payable", debit_minor: 0, credit_minor: 75_000_00, description: "Bill INV-0998 approved", created_at: "2026-08-20T09:00:00Z" },
+    { id: "le-13", org_id: "org-1", journal_entry_id: "je-bill-0998-pay", pay_run_id: null, employee_id: null, account: "accounts_payable", account_name: "Accounts Payable", debit_minor: 75_000_00, credit_minor: 0, description: "Bill INV-0998 paid", created_at: "2026-08-25T09:00:00Z" },
+    { id: "le-14", org_id: "org-1", journal_entry_id: "je-bill-0998-pay", pay_run_id: null, employee_id: null, account: "cash", account_name: "Cash", debit_minor: 0, credit_minor: 75_000_00, description: "Bill INV-0998 paid", created_at: "2026-08-25T09:00:00Z" },
   ],
   "/general-ledger/trial-balance": [
-    { account: "cash", account_name: "Cash", account_type: "asset", total_debit_minor: 0, total_credit_minor: 1_190_675_00, balance_minor: -1_190_675_00 },
+    { account: "cash", account_name: "Cash", account_type: "asset", total_debit_minor: 0, total_credit_minor: 1_265_675_00, balance_minor: -1_265_675_00 },
     { account: "payroll_expense_gross", account_name: "Payroll Expense — Gross Pay", account_type: "expense", total_debit_minor: 1_565_000_00, total_credit_minor: 0, balance_minor: 1_565_000_00 },
     { account: "payroll_expense_employer_pension", account_name: "Payroll Expense — Employer Pension", account_type: "expense", total_debit_minor: 125_200_00, total_credit_minor: 0, balance_minor: 125_200_00 },
+    { account: "contractor_expense", account_name: "Contractor Expense", account_type: "expense", total_debit_minor: 375_000_00, total_credit_minor: 0, balance_minor: 375_000_00 },
     { account: "paye_payable", account_name: "PAYE Payable", account_type: "liability", total_debit_minor: 0, total_credit_minor: 210_000_00, balance_minor: -210_000_00 },
     { account: "pension_payable", account_name: "Pension Payable", account_type: "liability", total_debit_minor: 0, total_credit_minor: 250_400_00, balance_minor: -250_400_00 },
     { account: "nhf_payable", account_name: "NHF Payable", account_type: "liability", total_debit_minor: 0, total_credit_minor: 39_125_00, balance_minor: -39_125_00 },
     { account: "net_pay_payable", account_name: "Net Pay Payable", account_type: "liability", total_debit_minor: 1_190_675_00, total_credit_minor: 1_190_675_00, balance_minor: 0 },
+    { account: "accounts_payable", account_name: "Accounts Payable", account_type: "liability", total_debit_minor: 75_000_00, total_credit_minor: 375_000_00, balance_minor: -300_000_00 },
+  ],
+  "/vendors": [
+    { id: "ven-01", org_id: "org-1", contractor_id: null, name: "Acme Office Supplies", contact_email: "billing@acme.example", contact_phone: "+2348011112222", tin: "12345678-0001", created_at: "2026-06-01T09:00:00Z" },
+    { id: "ven-02", org_id: "org-1", contractor_id: "ctr-demo-01", name: "Bright Consulting Ltd", contact_email: "accounts@brightconsulting.example", contact_phone: "+2348033334444", tin: "98765432-0001", created_at: "2026-07-15T09:00:00Z" },
+  ],
+  "/bills": [
+    { id: "bill-01", org_id: "org-1", vendor_id: "ven-01", bill_number: "INV-1003", bill_date: "2026-09-01", due_date: "2026-09-30", expense_account_code: "contractor_expense", amount_minor: 150_000_00, description: "September office supplies", status: "draft", paid_at: null, created_at: "2026-09-01T09:00:00Z" },
+    { id: "bill-02", org_id: "org-1", vendor_id: "ven-02", bill_number: "INV-1002", bill_date: "2026-09-02", due_date: "2026-09-25", expense_account_code: "contractor_expense", amount_minor: 300_000_00, description: "Q3 advisory retainer", status: "approved", paid_at: null, created_at: "2026-09-02T09:00:00Z" },
+    { id: "bill-03", org_id: "org-1", vendor_id: "ven-01", bill_number: "INV-0998", bill_date: "2026-08-18", due_date: "2026-09-01", expense_account_code: "contractor_expense", amount_minor: 75_000_00, description: "August office supplies", status: "paid", paid_at: "2026-08-25T09:00:00Z", created_at: "2026-08-18T09:00:00Z" },
   ],
   "/policies": [
     {

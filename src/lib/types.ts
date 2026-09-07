@@ -817,3 +817,58 @@ export interface JournalEntryCreateBody {
   description: string;
   lines: JournalEntryLineCreateBody[];
 }
+
+// --- vendors / bills ---
+
+export interface Vendor {
+  id: string;
+  org_id: string;
+  contractor_id: string | null;
+  name: string;
+  contact_email: string | null;
+  contact_phone: string | null;
+  tin: string | null;
+  created_at: string;
+}
+
+export interface VendorCreateBody {
+  name: string;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  tin?: string | null;
+  contractor_id?: string | null;
+}
+
+export interface VendorUpdateBody {
+  name?: string;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  tin?: string | null;
+}
+
+export type BillStatus = "draft" | "approved" | "paid" | "void";
+
+export interface Bill {
+  id: string;
+  org_id: string;
+  vendor_id: string;
+  bill_number: string;
+  bill_date: string;
+  due_date: string;
+  expense_account_code: string;
+  amount_minor: number;
+  description: string | null;
+  status: BillStatus;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export interface BillCreateBody {
+  vendor_id: string;
+  bill_number: string;
+  bill_date: string;
+  due_date: string;
+  expense_account_code: string;
+  amount_minor: number;
+  description?: string | null;
+}
