@@ -1,5 +1,8 @@
 import { apiFetch } from "@/lib/api/client";
 import type {
+  ApiKey,
+  ApiKeyCreateBody,
+  ApiKeyCreated,
   AssetAssignment,
   AssetAssignmentCreateBody,
   AssetAssignmentReturnBody,
@@ -268,6 +271,15 @@ export const companyAssetsApi = {
       method: "POST",
       body,
     }),
+};
+
+// --- api keys ---
+
+export const apiKeysApi = {
+  list: () => apiFetch<ApiKey[]>("/api-keys"),
+  create: (body: ApiKeyCreateBody) =>
+    apiFetch<ApiKeyCreated>("/api-keys", { method: "POST", body }),
+  revoke: (id: string) => apiFetch<ApiKey>(`/api-keys/${id}/revoke`, { method: "POST", body: {} }),
 };
 
 // --- pay runs ---

@@ -18,6 +18,7 @@ export interface NavItem {
     | "employeeRelations"
     | "unionDues"
     | "assets"
+    | "integrations"
     | "payroll"
     | "leave"
     | "expenses"
@@ -57,6 +58,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/reports", label: "Statutory Reports", icon: "reports", roles: ["admin", "payroll_manager"] },
   { href: "/settlement", label: "Final Settlement", icon: "settlement", roles: ["admin", "payroll_manager"] },
   { href: "/simulation", label: "Simulation", icon: "simulation", roles: ["admin", "payroll_manager"] },
+  { href: "/integrations", label: "Integrations", icon: "integrations", roles: ["admin"] },
 ];
 
 export function navForRole(role: Role): NavItem[] {

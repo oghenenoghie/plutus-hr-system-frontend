@@ -501,6 +501,25 @@ export interface AssetAssignmentReturnBody {
   condition_notes?: string | null;
 }
 
+// --- api keys ---
+
+export interface ApiKey {
+  id: string;
+  org_id: string;
+  name: string;
+  key_prefix: string;
+  revoked_at: string | null;
+  created_at: string;
+}
+
+export interface ApiKeyCreated extends ApiKey {
+  key: string;
+}
+
+export interface ApiKeyCreateBody {
+  name: string;
+}
+
 // --- policies ---
 
 export interface Policy {

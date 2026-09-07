@@ -856,6 +856,24 @@ export const MOCK_FIXTURES = {
       created_at: "2024-03-05T09:00:00Z",
     },
   ],
+  "/api-keys": [
+    {
+      id: "ak111111-0000-0000-0000-000000000001",
+      org_id: "org-1",
+      name: "Zapier Integration",
+      key_prefix: "plk_aB3xQ9zK",
+      revoked_at: null,
+      created_at: "2026-07-01T09:00:00Z",
+    },
+    {
+      id: "ak111111-0000-0000-0000-000000000002",
+      org_id: "org-1",
+      name: "Legacy reporting tool",
+      key_prefix: "plk_mN7pR2vL",
+      revoked_at: "2026-08-15T09:00:00Z",
+      created_at: "2026-05-01T09:00:00Z",
+    },
+  ],
   "/policies": [
     {
       id: "pl111111-0000-0000-0000-000000000001",
