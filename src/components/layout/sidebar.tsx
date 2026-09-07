@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Banknote,
+  BarChart3,
+  BookText,
   Building2,
   Calculator,
   ClipboardList,
@@ -25,6 +27,8 @@ const ICONS: Record<NavItem["icon"], typeof LayoutDashboard> = {
   employees: Users,
   departments: Building2,
   branches: MapPin,
+  jobGrades: BarChart3,
+  policies: BookText,
   payroll: Banknote,
   leave: ClipboardList,
   expenses: ReceiptText,

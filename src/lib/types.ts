@@ -50,6 +50,7 @@ export interface Employee {
   job_title: string | null;
   manager_id: string | null;
   department_id: string | null;
+  job_grade_id: string | null;
   tin: string | null;
   basic_minor: number;
   housing_minor: number;
@@ -90,6 +91,7 @@ export interface EmployeeCreateBody {
   job_title?: string;
   manager_id?: string;
   department_id?: string;
+  job_grade_id?: string;
 }
 
 // --- departments ---
@@ -136,6 +138,58 @@ export interface BranchUpdateBody {
   state?: string | null;
   address?: string | null;
   manager_id?: string | null;
+}
+
+// --- job grades ---
+
+export interface JobGrade {
+  id: string;
+  org_id: string;
+  name: string;
+  level: number | null;
+  min_salary_minor: number | null;
+  max_salary_minor: number | null;
+  created_at: string;
+}
+
+export interface JobGradeCreateBody {
+  name: string;
+  level?: number | null;
+  min_salary_minor?: number | null;
+  max_salary_minor?: number | null;
+}
+
+export interface JobGradeUpdateBody {
+  name?: string;
+  level?: number | null;
+  min_salary_minor?: number | null;
+  max_salary_minor?: number | null;
+}
+
+// --- policies ---
+
+export interface Policy {
+  id: string;
+  org_id: string;
+  title: string;
+  category: string | null;
+  body: string;
+  effective_date: string | null;
+  created_at: string;
+}
+
+export interface PolicyCreateBody {
+  title: string;
+  body: string;
+  category?: string | null;
+  effective_date?: string | null;
+}
+
+export interface PolicyUpdateBody {
+  title?: string;
+  body?: string;
+  category?: string | null;
+  effective_date?: string | null;
 }
 
 // --- payroll ---

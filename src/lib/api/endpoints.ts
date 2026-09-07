@@ -13,6 +13,9 @@ import type {
   EmployeeCreateBody,
   Expense,
   FinalSettlement,
+  JobGrade,
+  JobGradeCreateBody,
+  JobGradeUpdateBody,
   LeaveBalance,
   LeaveRequest,
   Loan,
@@ -21,6 +24,9 @@ import type {
   PayRun,
   PayRunCreateBody,
   Payslip,
+  Policy,
+  PolicyCreateBody,
+  PolicyUpdateBody,
   SimulationOut,
   SimulationRequestBody,
   StatutoryLiability,
@@ -76,6 +82,27 @@ export const branchesApi = {
   create: (body: BranchCreateBody) => apiFetch<Branch>("/branches", { method: "POST", body }),
   update: (id: string, body: BranchUpdateBody) =>
     apiFetch<Branch>(`/branches/${id}`, { method: "PATCH", body }),
+};
+
+// --- job grades ---
+
+export const jobGradesApi = {
+  list: () => apiFetch<JobGrade[]>("/job-grades"),
+  get: (id: string) => apiFetch<JobGrade>(`/job-grades/${id}`),
+  create: (body: JobGradeCreateBody) =>
+    apiFetch<JobGrade>("/job-grades", { method: "POST", body }),
+  update: (id: string, body: JobGradeUpdateBody) =>
+    apiFetch<JobGrade>(`/job-grades/${id}`, { method: "PATCH", body }),
+};
+
+// --- policies ---
+
+export const policiesApi = {
+  list: () => apiFetch<Policy[]>("/policies"),
+  get: (id: string) => apiFetch<Policy>(`/policies/${id}`),
+  create: (body: PolicyCreateBody) => apiFetch<Policy>("/policies", { method: "POST", body }),
+  update: (id: string, body: PolicyUpdateBody) =>
+    apiFetch<Policy>(`/policies/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---
