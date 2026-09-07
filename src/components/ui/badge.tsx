@@ -1,16 +1,16 @@
 type Tone = "good" | "warn" | "bad" | "neutral";
 
 const TONE_CLASSES: Record<Tone, string> = {
-  good: "bg-good-tint text-good",
-  warn: "bg-warn-tint text-warn",
-  bad: "bg-bad-tint text-bad",
-  neutral: "bg-bg text-ink-soft",
+  good: "border-good bg-good-tint text-good",
+  warn: "border-warn bg-warn-tint text-warn",
+  bad: "border-bad bg-bad-tint text-bad",
+  neutral: "border-border bg-bg text-ink-soft",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: Tone; children: React.ReactNode }) {
   return (
     <span
-      className={`inline-flex items-center rounded-badge px-3 py-[5px] text-[11px] font-bold uppercase tracking-[0.03em] ${TONE_CLASSES[tone]}`}
+      className={`inline-flex items-center rounded-badge border px-3 py-[5px] text-[11px] font-bold uppercase tracking-[0.03em] ${TONE_CLASSES[tone]}`}
     >
       {children}
     </span>

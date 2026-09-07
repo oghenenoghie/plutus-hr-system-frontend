@@ -1,35 +1,35 @@
 "use client";
 
+import { useState } from "react";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmActionButton } from "@/components/ui/confirm-action-button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
+import { Drawer } from "@/components/ui/drawer";
+import { Input, Label } from "@/components/ui/input";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
+import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
 import { statutoryLiabilitiesApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
+import type { StatutoryLiability } from "@/lib/types";
 
 export default function ReportsPage() {
   const liabilities = useApiResource(() => statutoryLiabilitiesApi.list());
+  const { showToast } = useToast();
+  const [remitting, setRemitting] = useState<StatutoryLiability | null>(null);
 
-  async function file(id: string) {
+  async function file(liability: StatutoryLiability) {
     try {
-      await statutoryLiabilitiesApi.file(id);
+      await statutoryLiabilitiesApi.file(liability.id);
+      showToast(`${liability.scheme.toUpperCase()} marked filed`, "good");
       liabilities.reload();
     } catch (err) {
-      alert(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.");
-    }
-  }
-
-  async function remit(id: string) {
-    const reference = window.prompt("Remittance reference (optional):") ?? undefined;
-    try {
-      await statutoryLiabilitiesApi.remit(id, reference || undefined);
-      liabilities.reload();
-    } catch (err) {
-      alert(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.");
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
     }
   }
 
@@ -74,12 +74,17 @@ export default function ReportsPage() {
                   <Td align="right">
                     <div className="flex justify-end gap-2">
                       {liability.status === "pending" ? (
-                        <Button size="md" variant="secondary" onClick={() => file(liability.id)}>
-                          Mark Filed
-                        </Button>
+                        <ConfirmActionButton
+                          action={() => file(liability)}
+                          label="Mark Filed"
+                          tone="primary"
+                          confirmTitle="Mark this liability as filed?"
+                          confirmMessage={`${liability.scheme.toUpperCase()} for ${formatDate(liability.period_start)} – ${formatDate(liability.period_end)} (${formatNaira(liability.amount_minor)}) will be marked filed with ${liability.authority}.`}
+                          confirmLabel="Mark Filed"
+                        />
                       ) : null}
                       {liability.status === "filed" ? (
-                        <Button size="md" onClick={() => remit(liability.id)}>
+                        <Button size="md" onClick={() => setRemitting(liability)}>
                           Mark Remitted
                         </Button>
                       ) : null}
@@ -92,6 +97,73 @@ export default function ReportsPage() {
           </Table>
         ) : null}
       </Card>
+
+      {remitting ? (
+        <RemitDrawer
+          liability={remitting}
+          onClose={() => setRemitting(null)}
+          onRemitted={() => {
+            setRemitting(null);
+            liabilities.reload();
+          }}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function RemitDrawer({
+  liability,
+  onClose,
+  onRemitted,
+}: {
+  liability: StatutoryLiability;
+  onClose: () => void;
+  onRemitted: () => void;
+}) {
+  const { showToast } = useToast();
+  const [reference, setReference] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await statutoryLiabilitiesApi.remit(liability.id, reference || undefined);
+      showToast(`${liability.scheme.toUpperCase()} marked remitted`, "good");
+      onRemitted();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Drawer title="Mark as Remitted" onClose={onClose}>
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
+        <p className="text-[13px] text-ink-soft">
+          {liability.scheme.toUpperCase()} for {formatDate(liability.period_start)} –{" "}
+          {formatDate(liability.period_end)} ({formatNaira(liability.amount_minor)}), payable to{" "}
+          {liability.authority}.
+        </p>
+        <div>
+          <Label htmlFor="reference">Remittance Reference</Label>
+          <Input
+            id="reference"
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            placeholder="Optional"
+          />
+        </div>
+        <div className="mt-auto flex justify-end gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Marking…" : "Mark Remitted"}
+          </Button>
+        </div>
+      </form>
+    </Drawer>
   );
 }

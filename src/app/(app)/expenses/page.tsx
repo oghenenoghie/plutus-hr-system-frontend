@@ -2,15 +2,16 @@
 
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmActionButton } from "@/components/ui/confirm-action-button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
+import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
 import { expensesApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
-import type { ExpenseStatus } from "@/lib/types";
+import type { Expense, ExpenseStatus } from "@/lib/types";
 
 const NEXT_ACTION: Partial<Record<ExpenseStatus, { label: string; run: (id: string) => Promise<unknown> }>> = {
   pending: { label: "Approve", run: (id) => expensesApi.approve(id) },
@@ -19,22 +20,15 @@ const NEXT_ACTION: Partial<Record<ExpenseStatus, { label: string; run: (id: stri
 
 export default function ExpensesPage() {
   const expenses = useApiResource(() => expensesApi.list());
+  const { showToast } = useToast();
 
-  async function act(id: string, run: (id: string) => Promise<unknown>) {
+  async function act(run: (id: string) => Promise<unknown>, id: string, successMessage: string) {
     try {
       await run(id);
+      showToast(successMessage, "good");
       expenses.reload();
     } catch (err) {
-      alert(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.");
-    }
-  }
-
-  async function reject(id: string) {
-    try {
-      await expensesApi.reject(id);
-      expenses.reload();
-    } catch (err) {
-      alert(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.");
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
     }
   }
 
@@ -61,7 +55,7 @@ export default function ExpensesPage() {
               </tr>
             </Thead>
             <tbody>
-              {expenses.data.map((expense) => {
+              {expenses.data.map((expense: Expense) => {
                 const next = NEXT_ACTION[expense.status];
                 return (
                   <tr key={expense.id}>
@@ -76,13 +70,28 @@ export default function ExpensesPage() {
                       {next ? (
                         <div className="flex justify-end gap-2">
                           {expense.status === "pending" ? (
-                            <Button size="md" variant="secondary" onClick={() => reject(expense.id)}>
-                              Reject
-                            </Button>
+                            <ConfirmActionButton
+                              action={() => act(expensesApi.reject, expense.id, "Expense claim rejected")}
+                              label="Reject"
+                              confirmTitle="Reject this expense claim?"
+                              confirmMessage={`${expense.category} — ${formatNaira(expense.amount_minor)} will be rejected.`}
+                              confirmLabel="Reject"
+                            />
                           ) : null}
-                          <Button size="md" onClick={() => act(expense.id, next.run)}>
-                            {next.label}
-                          </Button>
+                          <ConfirmActionButton
+                            action={() =>
+                              act(
+                                next.run,
+                                expense.id,
+                                next.label === "Approve" ? "Expense claim approved" : "Expense marked reimbursed",
+                              )
+                            }
+                            label={next.label}
+                            tone="primary"
+                            confirmTitle={`${next.label} this expense claim?`}
+                            confirmMessage={`${expense.category} — ${formatNaira(expense.amount_minor)} will be marked ${next.label === "Approve" ? "approved" : "reimbursed"}.`}
+                            confirmLabel={next.label}
+                          />
                         </div>
                       ) : (
                         <span className="text-ink-soft">—</span>
