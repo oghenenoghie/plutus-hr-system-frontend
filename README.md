@@ -17,7 +17,7 @@ cp .env.example .env.local   # point NEXT_PUBLIC_API_BASE_URL at your backend
 npm run dev
 ```
 
-The app expects `plutus-hr-system` running locally (default `http://localhost:8000/api/v1`) with at least one seeded `Account` + `Membership` to sign in with.
+The app expects `plutus-hr-system` running locally (default `http://localhost:8000/api/v1`) with at least one seeded `Account` + `Membership` to sign in with. To preview the UI without a backend at all, set `NEXT_PUBLIC_MOCK_MODE=1` in `.env.local` — every screen renders from `src/lib/api/mock-fixtures.ts` and skips login entirely.
 
 ## Structure
 

@@ -9,6 +9,7 @@ function isBrowser(): boolean {
 }
 
 export function getAccessToken(): string | null {
+  if (process.env.NEXT_PUBLIC_MOCK_MODE === "1") return "mock-token";
   if (!isBrowser()) return null;
   return window.localStorage.getItem(ACCESS_KEY);
 }
