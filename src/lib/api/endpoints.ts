@@ -44,6 +44,12 @@ import type {
   SimulationRequestBody,
   StatutoryLiability,
   TokenResponse,
+  TrainingCourse,
+  TrainingCourseCreateBody,
+  TrainingCourseUpdateBody,
+  TrainingEnrollment,
+  TrainingEnrollmentCreateBody,
+  TrainingEnrollmentUpdateBody,
   WhtPayment,
 } from "@/lib/types";
 
@@ -163,6 +169,26 @@ export const performanceReviewsApi = {
       method: "POST",
       body,
     }),
+};
+
+// --- learning & development ---
+
+export const trainingCoursesApi = {
+  list: () => apiFetch<TrainingCourse[]>("/training-courses"),
+  get: (id: string) => apiFetch<TrainingCourse>(`/training-courses/${id}`),
+  create: (body: TrainingCourseCreateBody) =>
+    apiFetch<TrainingCourse>("/training-courses", { method: "POST", body }),
+  update: (id: string, body: TrainingCourseUpdateBody) =>
+    apiFetch<TrainingCourse>(`/training-courses/${id}`, { method: "PATCH", body }),
+  enrollments: (id: string) => apiFetch<TrainingEnrollment[]>(`/training-courses/${id}/enrollments`),
+  enroll: (id: string, body: TrainingEnrollmentCreateBody) =>
+    apiFetch<TrainingEnrollment>(`/training-courses/${id}/enrollments`, { method: "POST", body }),
+};
+
+export const trainingEnrollmentsApi = {
+  mine: () => apiFetch<TrainingEnrollment[]>("/training-enrollments/me"),
+  update: (id: string, body: TrainingEnrollmentUpdateBody) =>
+    apiFetch<TrainingEnrollment>(`/training-enrollments/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---

@@ -49,6 +49,9 @@ const STATUS_TONE: Record<string, Tone> = {
   // performance reviews
   submitted: "warn",
   acknowledged: "good",
+  // training enrollments
+  enrolled: "neutral",
+  in_progress: "warn",
 };
 
 export function StatusBadge({ status }: { status: string }) {

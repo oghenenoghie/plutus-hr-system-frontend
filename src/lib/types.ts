@@ -288,6 +288,57 @@ export interface PerformanceReviewAcknowledgeBody {
   employee_comments?: string | null;
 }
 
+// --- learning & development ---
+
+export type TrainingEnrollmentStatus = "enrolled" | "in_progress" | "completed" | "failed";
+
+export interface TrainingCourse {
+  id: string;
+  org_id: string;
+  title: string;
+  description: string | null;
+  provider: string | null;
+  duration_hours: number | null;
+  created_at: string;
+}
+
+export interface TrainingCourseCreateBody {
+  title: string;
+  description?: string | null;
+  provider?: string | null;
+  duration_hours?: number | null;
+}
+
+export interface TrainingCourseUpdateBody {
+  title?: string;
+  description?: string | null;
+  provider?: string | null;
+  duration_hours?: number | null;
+}
+
+export interface TrainingEnrollment {
+  id: string;
+  org_id: string;
+  course_id: string;
+  employee_id: string;
+  status: TrainingEnrollmentStatus;
+  enrolled_date: string;
+  completed_date: string | null;
+  score: number | null;
+  created_at: string;
+}
+
+export interface TrainingEnrollmentCreateBody {
+  employee_id: string;
+  enrolled_date: string;
+}
+
+export interface TrainingEnrollmentUpdateBody {
+  status?: TrainingEnrollmentStatus;
+  completed_date?: string | null;
+  score?: number | null;
+}
+
 // --- policies ---
 
 export interface Policy {

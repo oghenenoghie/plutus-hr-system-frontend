@@ -22,10 +22,12 @@ import {
   payRunsApi,
   performanceReviewsApi,
   policiesApi,
+  trainingCoursesApi,
+  trainingEnrollmentsApi,
 } from "@/lib/api/endpoints";
 import { formatDate, formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
-import type { PerformanceReview } from "@/lib/types";
+import type { PerformanceReview, TrainingEnrollment } from "@/lib/types";
 
 export default function MyWorkspacePage() {
   const employee = useApiResource(() => employeesApi.me());
@@ -37,6 +39,9 @@ export default function MyWorkspacePage() {
   const benefits = useApiResource(() => benefitsApi.mine());
   const policies = useApiResource(() => policiesApi.list());
   const performanceReviews = useApiResource(() => performanceReviewsApi.me());
+  const myEnrollments = useApiResource(() => trainingEnrollmentsApi.mine());
+  const courses = useApiResource(() => trainingCoursesApi.list());
+  const coursesById = new Map((courses.data ?? []).map((course) => [course.id, course]));
 
   const latestPayslip = payslips.data
     ? [...payslips.data].sort((a, b) => (a.period_end < b.period_end ? 1 : -1))[0]
@@ -235,6 +240,37 @@ export default function MyWorkspacePage() {
                 />
               ))}
             </ul>
+          ) : null}
+        </Card>
+
+        <Card>
+          <CardHeader title="Learning" />
+          {myEnrollments.loading ? <LoadingState /> : null}
+          {myEnrollments.error ? <ErrorState message={myEnrollments.error} /> : null}
+          {myEnrollments.data && myEnrollments.data.length === 0 ? (
+            <EmptyState label="No training enrollments yet." />
+          ) : null}
+          {myEnrollments.data && myEnrollments.data.length > 0 ? (
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Course</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Score</Th>
+                </tr>
+              </Thead>
+              <tbody>
+                {myEnrollments.data.map((enrollment: TrainingEnrollment) => (
+                  <tr key={enrollment.id}>
+                    <Td>{coursesById.get(enrollment.course_id)?.title ?? "—"}</Td>
+                    <Td>
+                      <StatusBadge status={enrollment.status} />
+                    </Td>
+                    <Td align="right">{enrollment.score != null ? `${enrollment.score}/100` : "—"}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
           ) : null}
         </Card>
 
