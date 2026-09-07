@@ -57,6 +57,10 @@ import type {
   TrainingEnrollment,
   TrainingEnrollmentCreateBody,
   TrainingEnrollmentUpdateBody,
+  UnionMembership,
+  UnionMembershipCreateBody,
+  UnionMembershipTerminateBody,
+  UnionMembershipUpdateBody,
   WhtPayment,
 } from "@/lib/types";
 
@@ -221,6 +225,23 @@ export const notificationsApi = {
   markAllRead: () => apiFetch<void>("/notifications/me/read-all", { method: "POST", body: {} }),
   broadcast: (body: NotificationBroadcastBody) =>
     apiFetch<Notification[]>("/notifications/broadcast", { method: "POST", body }),
+};
+
+// --- union dues ---
+
+export const unionMembershipsApi = {
+  forEmployee: (employeeId: string) =>
+    apiFetch<UnionMembership[]>(`/union-memberships/employees/${employeeId}`),
+  mine: () => apiFetch<UnionMembership[]>("/union-memberships/me"),
+  assign: (employeeId: string, body: UnionMembershipCreateBody) =>
+    apiFetch<UnionMembership>(`/union-memberships/employees/${employeeId}`, {
+      method: "POST",
+      body,
+    }),
+  update: (id: string, body: UnionMembershipUpdateBody) =>
+    apiFetch<UnionMembership>(`/union-memberships/${id}`, { method: "PATCH", body }),
+  terminate: (id: string, body: UnionMembershipTerminateBody) =>
+    apiFetch<UnionMembership>(`/union-memberships/${id}/terminate`, { method: "POST", body }),
 };
 
 // --- pay runs ---

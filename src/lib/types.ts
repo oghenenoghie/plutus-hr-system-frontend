@@ -412,6 +412,41 @@ export interface NotificationUnreadCount {
   unread_count: number;
 }
 
+// --- union dues ---
+
+export type UnionMembershipStatus = "active" | "suspended" | "terminated";
+
+export interface UnionMembership {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  union_name: string;
+  membership_number: string | null;
+  monthly_dues_minor: number;
+  status: UnionMembershipStatus;
+  joined_date: string;
+  terminated_date: string | null;
+  created_at: string;
+}
+
+export interface UnionMembershipCreateBody {
+  union_name: string;
+  monthly_dues_minor: number;
+  joined_date: string;
+  membership_number?: string | null;
+}
+
+export interface UnionMembershipUpdateBody {
+  union_name?: string;
+  membership_number?: string | null;
+  monthly_dues_minor?: number;
+  status?: UnionMembershipStatus;
+}
+
+export interface UnionMembershipTerminateBody {
+  terminated_date: string;
+}
+
 // --- policies ---
 
 export interface Policy {

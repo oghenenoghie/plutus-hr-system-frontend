@@ -24,6 +24,7 @@ import {
   policiesApi,
   trainingCoursesApi,
   trainingEnrollmentsApi,
+  unionMembershipsApi,
 } from "@/lib/api/endpoints";
 import { formatDate, formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
@@ -42,6 +43,7 @@ export default function MyWorkspacePage() {
   const myEnrollments = useApiResource(() => trainingEnrollmentsApi.mine());
   const courses = useApiResource(() => trainingCoursesApi.list());
   const coursesById = new Map((courses.data ?? []).map((course) => [course.id, course]));
+  const unionMemberships = useApiResource(() => unionMembershipsApi.mine());
 
   const latestPayslip = payslips.data
     ? [...payslips.data].sort((a, b) => (a.period_end < b.period_end ? 1 : -1))[0]
@@ -267,6 +269,39 @@ export default function MyWorkspacePage() {
                       <StatusBadge status={enrollment.status} />
                     </Td>
                     <Td align="right">{enrollment.score != null ? `${enrollment.score}/100` : "—"}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : null}
+        </Card>
+
+        <Card>
+          <CardHeader title="Union Membership" />
+          {unionMemberships.loading ? <LoadingState /> : null}
+          {unionMemberships.error ? <ErrorState message={unionMemberships.error} /> : null}
+          {unionMemberships.data && unionMemberships.data.length === 0 ? (
+            <EmptyState label="No union membership on record." />
+          ) : null}
+          {unionMemberships.data && unionMemberships.data.length > 0 ? (
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Union</Th>
+                  <Th align="right">Monthly Dues</Th>
+                  <Th>Status</Th>
+                </tr>
+              </Thead>
+              <tbody>
+                {unionMemberships.data.map((membership) => (
+                  <tr key={membership.id}>
+                    <Td>{membership.union_name}</Td>
+                    <Td align="right">{formatNaira(membership.monthly_dues_minor)}</Td>
+                    <Td>
+                      <Badge tone={membership.status === "active" ? "good" : membership.status === "suspended" ? "warn" : "neutral"}>
+                        {membership.status}
+                      </Badge>
+                    </Td>
                   </tr>
                 ))}
               </tbody>

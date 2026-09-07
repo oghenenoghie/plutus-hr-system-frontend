@@ -23,6 +23,7 @@ import {
   UserPlus,
   UserSquare2,
   Users,
+  Users2,
 } from "lucide-react";
 
 import { navForRole, ROLE_LABELS, type NavItem } from "@/lib/nav";
@@ -41,6 +42,7 @@ const ICONS: Record<NavItem["icon"], typeof LayoutDashboard> = {
   performance: Star,
   learning: GraduationCap,
   employeeRelations: Gavel,
+  unionDues: Users2,
   payroll: Banknote,
   leave: ClipboardList,
   expenses: ReceiptText,
