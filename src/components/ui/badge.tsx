@@ -61,6 +61,8 @@ const STATUS_TONE: Record<string, Tone> = {
   paid: "good",
   void: "bad",
   sent: "warn",
+  // fixed assets
+  disposed: "neutral",
 };
 
 export function StatusBadge({ status }: { status: string }) {

@@ -38,6 +38,9 @@ import type {
   EmployeeCreateBody,
   Expense,
   FinalSettlement,
+  FixedAsset,
+  FixedAssetCreateBody,
+  FixedAssetDisposeBody,
   IncomeStatement,
   Invoice,
   InvoiceCreateBody,
@@ -379,6 +382,18 @@ export const financialStatementsApi = {
     const qs = query.toString();
     return apiFetch<IncomeStatement>(`/financial-statements/income-statement${qs ? `?${qs}` : ""}`);
   },
+};
+
+// --- fixed assets ---
+
+export const fixedAssetsApi = {
+  list: () => apiFetch<FixedAsset[]>("/fixed-assets"),
+  create: (body: FixedAssetCreateBody) =>
+    apiFetch<FixedAsset>("/fixed-assets", { method: "POST", body }),
+  depreciate: (id: string) =>
+    apiFetch<FixedAsset>(`/fixed-assets/${id}/depreciate`, { method: "POST", body: {} }),
+  dispose: (id: string, body: FixedAssetDisposeBody) =>
+    apiFetch<FixedAsset>(`/fixed-assets/${id}/dispose`, { method: "POST", body }),
 };
 
 // --- pay runs ---

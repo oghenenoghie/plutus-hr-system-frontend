@@ -23,6 +23,7 @@ export interface NavItem {
     | "bills"
     | "invoices"
     | "financialStatements"
+    | "fixedAssets"
     | "payroll"
     | "leave"
     | "expenses"
@@ -75,6 +76,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/financial-statements",
     label: "Financial Statements",
     icon: "financialStatements",
+    roles: ["admin", "payroll_manager"],
+  },
+  {
+    href: "/fixed-assets",
+    label: "Fixed Assets",
+    icon: "fixedAssets",
     roles: ["admin", "payroll_manager"],
   },
 ];

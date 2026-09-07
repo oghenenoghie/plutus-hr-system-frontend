@@ -953,3 +953,37 @@ export interface IncomeStatement {
   total_expenses_minor: number;
   net_income_minor: number;
 }
+
+// --- fixed assets ---
+
+export type FixedAssetStatus = "active" | "disposed";
+
+export interface FixedAsset {
+  id: string;
+  org_id: string;
+  name: string;
+  asset_tag: string;
+  acquisition_date: string;
+  cost_minor: number;
+  salvage_value_minor: number;
+  useful_life_months: number;
+  accumulated_depreciation_minor: number;
+  book_value_minor: number;
+  status: FixedAssetStatus;
+  disposed_at: string | null;
+  disposal_proceeds_minor: number | null;
+  created_at: string;
+}
+
+export interface FixedAssetCreateBody {
+  name: string;
+  asset_tag: string;
+  acquisition_date: string;
+  cost_minor: number;
+  salvage_value_minor?: number;
+  useful_life_months: number;
+}
+
+export interface FixedAssetDisposeBody {
+  proceeds_minor?: number;
+}
