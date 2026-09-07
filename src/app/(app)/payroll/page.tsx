@@ -1,7 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
@@ -10,11 +13,16 @@ import { formatDate, formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 
 export default function PayrollPage() {
+  const router = useRouter();
   const payRuns = useApiResource(() => payRunsApi.list());
 
   return (
     <div>
-      <PageHeader title="Payroll Runs" subtitle="Multi-frequency runs with full audit trail" />
+      <PageHeader
+        title="Payroll Runs"
+        subtitle="Multi-frequency runs with full audit trail"
+        action={<Button onClick={() => router.push("/payroll/new")}>New Pay Run</Button>}
+      />
 
       <Card>
         {payRuns.loading ? <LoadingState /> : null}
