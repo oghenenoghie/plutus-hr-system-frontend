@@ -24,6 +24,7 @@ export interface NavItem {
     | "invoices"
     | "financialStatements"
     | "fixedAssets"
+    | "budgets"
     | "payroll"
     | "leave"
     | "expenses"
@@ -84,6 +85,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: "fixedAssets",
     roles: ["admin", "payroll_manager"],
   },
+  { href: "/budgets", label: "Budgets", icon: "budgets", roles: ["admin", "payroll_manager"] },
 ];
 
 export function navForRole(role: Role): NavItem[] {
