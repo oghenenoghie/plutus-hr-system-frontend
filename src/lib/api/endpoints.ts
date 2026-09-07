@@ -12,6 +12,10 @@ import type {
   DepartmentCreateBody,
   DepartmentUpdateBody,
   Disbursement,
+  DisciplinaryCase,
+  DisciplinaryCaseCreateBody,
+  DisciplinaryCaseResolveBody,
+  DisciplinaryCaseUpdateBody,
   Employee,
   EmployeeCreateBody,
   Expense,
@@ -189,6 +193,19 @@ export const trainingEnrollmentsApi = {
   mine: () => apiFetch<TrainingEnrollment[]>("/training-enrollments/me"),
   update: (id: string, body: TrainingEnrollmentUpdateBody) =>
     apiFetch<TrainingEnrollment>(`/training-enrollments/${id}`, { method: "PATCH", body }),
+};
+
+// --- employee relations ---
+
+export const disciplinaryCasesApi = {
+  list: () => apiFetch<DisciplinaryCase[]>("/disciplinary-cases"),
+  get: (id: string) => apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}`),
+  create: (body: DisciplinaryCaseCreateBody) =>
+    apiFetch<DisciplinaryCase>("/disciplinary-cases", { method: "POST", body }),
+  update: (id: string, body: DisciplinaryCaseUpdateBody) =>
+    apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}`, { method: "PATCH", body }),
+  resolve: (id: string, body: DisciplinaryCaseResolveBody) =>
+    apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}/resolve`, { method: "POST", body }),
 };
 
 // --- pay runs ---

@@ -339,6 +339,56 @@ export interface TrainingEnrollmentUpdateBody {
   score?: number | null;
 }
 
+// --- employee relations ---
+
+export type DisciplinaryCaseCategory =
+  | "misconduct"
+  | "attendance"
+  | "policy_violation"
+  | "harassment"
+  | "other";
+export type DisciplinaryCaseStatus = "open" | "under_review" | "resolved" | "dismissed";
+export type DisciplinaryCaseAction =
+  | "none"
+  | "verbal_warning"
+  | "written_warning"
+  | "suspension"
+  | "termination";
+
+export interface DisciplinaryCase {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  reported_by_id: string | null;
+  category: DisciplinaryCaseCategory;
+  description: string;
+  status: DisciplinaryCaseStatus;
+  incident_date: string;
+  action_taken: DisciplinaryCaseAction | null;
+  resolution_notes: string | null;
+  resolution_date: string | null;
+  created_at: string;
+}
+
+export interface DisciplinaryCaseCreateBody {
+  employee_id: string;
+  reported_by_id?: string | null;
+  category: DisciplinaryCaseCategory;
+  description: string;
+  incident_date: string;
+}
+
+export interface DisciplinaryCaseUpdateBody {
+  category?: DisciplinaryCaseCategory;
+  description?: string;
+  status?: DisciplinaryCaseStatus;
+}
+
+export interface DisciplinaryCaseResolveBody {
+  action_taken: DisciplinaryCaseAction;
+  resolution_notes?: string | null;
+}
+
 // --- policies ---
 
 export interface Policy {
