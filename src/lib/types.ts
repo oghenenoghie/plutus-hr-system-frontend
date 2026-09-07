@@ -51,6 +51,7 @@ export interface Employee {
   manager_id: string | null;
   department_id: string | null;
   job_grade_id: string | null;
+  shift_id: string | null;
   tin: string | null;
   basic_minor: number;
   housing_minor: number;
@@ -92,6 +93,7 @@ export interface EmployeeCreateBody {
   manager_id?: string;
   department_id?: string;
   job_grade_id?: string;
+  shift_id?: string;
 }
 
 // --- departments ---
@@ -164,6 +166,177 @@ export interface JobGradeUpdateBody {
   level?: number | null;
   min_salary_minor?: number | null;
   max_salary_minor?: number | null;
+}
+
+// --- shifts ---
+// start_time/end_time are "HH:MM:SS" wall-clock strings, no date component.
+
+export interface Shift {
+  id: string;
+  org_id: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+}
+
+export interface ShiftCreateBody {
+  name: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface ShiftUpdateBody {
+  name?: string;
+  start_time?: string;
+  end_time?: string;
+}
+
+// --- recruitment ---
+
+export type JobPostingStatus = "open" | "closed";
+export type CandidateStatus = "applied" | "interviewing" | "offered" | "hired" | "rejected";
+
+export interface JobPosting {
+  id: string;
+  org_id: string;
+  department_id: string | null;
+  title: string;
+  description: string | null;
+  status: JobPostingStatus;
+  opened_date: string;
+  closed_date: string | null;
+  created_at: string;
+}
+
+export interface JobPostingCreateBody {
+  title: string;
+  department_id?: string | null;
+  description?: string | null;
+  opened_date: string;
+}
+
+export interface JobPostingUpdateBody {
+  title?: string;
+  department_id?: string | null;
+  description?: string | null;
+  status?: JobPostingStatus;
+  closed_date?: string | null;
+}
+
+export interface Candidate {
+  id: string;
+  org_id: string;
+  job_posting_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  status: CandidateStatus;
+  applied_date: string;
+  created_at: string;
+}
+
+export interface CandidateCreateBody {
+  full_name: string;
+  email?: string | null;
+  phone?: string | null;
+  applied_date: string;
+}
+
+export interface CandidateUpdateBody {
+  full_name?: string;
+  email?: string | null;
+  phone?: string | null;
+  status?: CandidateStatus;
+}
+
+// --- performance reviews ---
+
+export type PerformanceReviewStatus = "draft" | "submitted" | "acknowledged";
+
+export interface PerformanceReview {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  reviewer_id: string | null;
+  period_start: string;
+  period_end: string;
+  status: PerformanceReviewStatus;
+  rating: number | null;
+  goals: string | null;
+  manager_comments: string | null;
+  employee_comments: string | null;
+  submitted_date: string | null;
+  acknowledged_date: string | null;
+  created_at: string;
+}
+
+export interface PerformanceReviewCreateBody {
+  employee_id: string;
+  reviewer_id?: string | null;
+  period_start: string;
+  period_end: string;
+  goals?: string | null;
+}
+
+export interface PerformanceReviewSubmitBody {
+  rating?: number | null;
+  manager_comments?: string | null;
+}
+
+export interface PerformanceReviewAcknowledgeBody {
+  employee_comments?: string | null;
+}
+
+// --- learning & development ---
+
+export type TrainingEnrollmentStatus = "enrolled" | "in_progress" | "completed" | "failed";
+
+export interface TrainingCourse {
+  id: string;
+  org_id: string;
+  title: string;
+  description: string | null;
+  provider: string | null;
+  duration_hours: number | null;
+  created_at: string;
+}
+
+export interface TrainingCourseCreateBody {
+  title: string;
+  description?: string | null;
+  provider?: string | null;
+  duration_hours?: number | null;
+}
+
+export interface TrainingCourseUpdateBody {
+  title?: string;
+  description?: string | null;
+  provider?: string | null;
+  duration_hours?: number | null;
+}
+
+export interface TrainingEnrollment {
+  id: string;
+  org_id: string;
+  course_id: string;
+  employee_id: string;
+  status: TrainingEnrollmentStatus;
+  enrolled_date: string;
+  completed_date: string | null;
+  score: number | null;
+  created_at: string;
+}
+
+export interface TrainingEnrollmentCreateBody {
+  employee_id: string;
+  enrolled_date: string;
+}
+
+export interface TrainingEnrollmentUpdateBody {
+  status?: TrainingEnrollmentStatus;
+  completed_date?: string | null;
+  score?: number | null;
 }
 
 // --- policies ---

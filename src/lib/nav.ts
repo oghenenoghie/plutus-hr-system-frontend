@@ -6,10 +6,15 @@ export interface NavItem {
   icon:
     | "dashboard"
     | "employees"
+    | "orgChart"
     | "departments"
     | "branches"
     | "jobGrades"
     | "policies"
+    | "shifts"
+    | "recruitment"
+    | "performance"
+    | "learning"
     | "payroll"
     | "leave"
     | "expenses"
@@ -28,10 +33,15 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: "dashboard", roles: ["admin", "payroll_manager"] },
   { href: "/employees", label: "Employees", icon: "employees", roles: ["admin", "payroll_manager", "manager"] },
+  { href: "/org-chart", label: "Org Chart", icon: "orgChart", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/departments", label: "Departments", icon: "departments", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/branches", label: "Branches", icon: "branches", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/job-grades", label: "Job Grades", icon: "jobGrades", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/policies", label: "Policies", icon: "policies", roles: ["admin", "payroll_manager", "manager"] },
+  { href: "/shifts", label: "Shifts", icon: "shifts", roles: ["admin", "payroll_manager", "manager"] },
+  { href: "/recruitment", label: "Recruitment", icon: "recruitment", roles: ["admin", "payroll_manager", "manager"] },
+  { href: "/performance", label: "Performance", icon: "performance", roles: ["admin", "payroll_manager", "manager"] },
+  { href: "/learning", label: "Learning", icon: "learning", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/payroll", label: "Payroll Runs", icon: "payroll", roles: ["admin", "payroll_manager"] },
   { href: "/leave", label: "Leave", icon: "leave", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/expenses", label: "Expenses", icon: "expenses", roles: ["admin", "payroll_manager", "manager"] },

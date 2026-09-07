@@ -38,6 +38,20 @@ const STATUS_TONE: Record<string, Tone> = {
   // lifecycle
   suspended: "warn",
   terminated: "bad",
+  // recruitment: job postings
+  open: "good",
+  closed: "neutral",
+  // recruitment: candidates
+  applied: "neutral",
+  interviewing: "warn",
+  offered: "warn",
+  hired: "good",
+  // performance reviews
+  submitted: "warn",
+  acknowledged: "good",
+  // training enrollments
+  enrolled: "neutral",
+  in_progress: "warn",
 };
 
 export function StatusBadge({ status }: { status: string }) {

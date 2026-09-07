@@ -4,6 +4,9 @@ import type {
   Branch,
   BranchCreateBody,
   BranchUpdateBody,
+  Candidate,
+  CandidateCreateBody,
+  CandidateUpdateBody,
   Contractor,
   Department,
   DepartmentCreateBody,
@@ -16,6 +19,9 @@ import type {
   JobGrade,
   JobGradeCreateBody,
   JobGradeUpdateBody,
+  JobPosting,
+  JobPostingCreateBody,
+  JobPostingUpdateBody,
   LeaveBalance,
   LeaveRequest,
   Loan,
@@ -24,13 +30,26 @@ import type {
   PayRun,
   PayRunCreateBody,
   Payslip,
+  PerformanceReview,
+  PerformanceReviewAcknowledgeBody,
+  PerformanceReviewCreateBody,
+  PerformanceReviewSubmitBody,
   Policy,
   PolicyCreateBody,
   PolicyUpdateBody,
+  Shift,
+  ShiftCreateBody,
+  ShiftUpdateBody,
   SimulationOut,
   SimulationRequestBody,
   StatutoryLiability,
   TokenResponse,
+  TrainingCourse,
+  TrainingCourseCreateBody,
+  TrainingCourseUpdateBody,
+  TrainingEnrollment,
+  TrainingEnrollmentCreateBody,
+  TrainingEnrollmentUpdateBody,
   WhtPayment,
 } from "@/lib/types";
 
@@ -103,6 +122,73 @@ export const policiesApi = {
   create: (body: PolicyCreateBody) => apiFetch<Policy>("/policies", { method: "POST", body }),
   update: (id: string, body: PolicyUpdateBody) =>
     apiFetch<Policy>(`/policies/${id}`, { method: "PATCH", body }),
+};
+
+// --- shifts ---
+
+export const shiftsApi = {
+  list: () => apiFetch<Shift[]>("/shifts"),
+  get: (id: string) => apiFetch<Shift>(`/shifts/${id}`),
+  create: (body: ShiftCreateBody) => apiFetch<Shift>("/shifts", { method: "POST", body }),
+  update: (id: string, body: ShiftUpdateBody) =>
+    apiFetch<Shift>(`/shifts/${id}`, { method: "PATCH", body }),
+};
+
+// --- recruitment ---
+
+export const jobPostingsApi = {
+  list: () => apiFetch<JobPosting[]>("/job-postings"),
+  get: (id: string) => apiFetch<JobPosting>(`/job-postings/${id}`),
+  create: (body: JobPostingCreateBody) =>
+    apiFetch<JobPosting>("/job-postings", { method: "POST", body }),
+  update: (id: string, body: JobPostingUpdateBody) =>
+    apiFetch<JobPosting>(`/job-postings/${id}`, { method: "PATCH", body }),
+  candidates: (id: string) => apiFetch<Candidate[]>(`/job-postings/${id}/candidates`),
+  addCandidate: (id: string, body: CandidateCreateBody) =>
+    apiFetch<Candidate>(`/job-postings/${id}/candidates`, { method: "POST", body }),
+};
+
+export const candidatesApi = {
+  get: (id: string) => apiFetch<Candidate>(`/candidates/${id}`),
+  update: (id: string, body: CandidateUpdateBody) =>
+    apiFetch<Candidate>(`/candidates/${id}`, { method: "PATCH", body }),
+};
+
+// --- performance reviews ---
+
+export const performanceReviewsApi = {
+  list: () => apiFetch<PerformanceReview[]>("/performance-reviews"),
+  me: () => apiFetch<PerformanceReview[]>("/performance-reviews/me"),
+  get: (id: string) => apiFetch<PerformanceReview>(`/performance-reviews/${id}`),
+  create: (body: PerformanceReviewCreateBody) =>
+    apiFetch<PerformanceReview>("/performance-reviews", { method: "POST", body }),
+  submit: (id: string, body: PerformanceReviewSubmitBody) =>
+    apiFetch<PerformanceReview>(`/performance-reviews/${id}/submit`, { method: "POST", body }),
+  acknowledge: (id: string, body: PerformanceReviewAcknowledgeBody) =>
+    apiFetch<PerformanceReview>(`/performance-reviews/${id}/acknowledge`, {
+      method: "POST",
+      body,
+    }),
+};
+
+// --- learning & development ---
+
+export const trainingCoursesApi = {
+  list: () => apiFetch<TrainingCourse[]>("/training-courses"),
+  get: (id: string) => apiFetch<TrainingCourse>(`/training-courses/${id}`),
+  create: (body: TrainingCourseCreateBody) =>
+    apiFetch<TrainingCourse>("/training-courses", { method: "POST", body }),
+  update: (id: string, body: TrainingCourseUpdateBody) =>
+    apiFetch<TrainingCourse>(`/training-courses/${id}`, { method: "PATCH", body }),
+  enrollments: (id: string) => apiFetch<TrainingEnrollment[]>(`/training-courses/${id}/enrollments`),
+  enroll: (id: string, body: TrainingEnrollmentCreateBody) =>
+    apiFetch<TrainingEnrollment>(`/training-courses/${id}/enrollments`, { method: "POST", body }),
+};
+
+export const trainingEnrollmentsApi = {
+  mine: () => apiFetch<TrainingEnrollment[]>("/training-enrollments/me"),
+  update: (id: string, body: TrainingEnrollmentUpdateBody) =>
+    apiFetch<TrainingEnrollment>(`/training-enrollments/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---
