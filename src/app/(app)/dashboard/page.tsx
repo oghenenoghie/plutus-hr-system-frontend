@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -49,6 +50,33 @@ export default function DashboardPage() {
             value={summary.data.pending_expense_count.toLocaleString("en-NG")}
           />
         </div>
+      ) : null}
+
+      {summary.data ? (
+        <Card className="mb-8">
+          <CardHeader
+            title="Accounting"
+            subtitle="Cash and outstanding balances across the accounting suite"
+            action={
+              <Link href="/general-ledger">
+                <Button variant="secondary">General Ledger</Button>
+              </Link>
+            }
+          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <KpiTile label="Cash Balance" value={formatNaira(summary.data.cash_balance_minor)} />
+            <KpiTile
+              label="Accounts Payable"
+              value={formatNaira(summary.data.accounts_payable_minor)}
+              caption="Owed to vendors"
+            />
+            <KpiTile
+              label="Accounts Receivable"
+              value={formatNaira(summary.data.accounts_receivable_minor)}
+              caption="Owed by customers"
+            />
+          </div>
+        </Card>
       ) : null}
 
       {summary.data?.last_completed_pay_run ? (

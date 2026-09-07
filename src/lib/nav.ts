@@ -25,6 +25,7 @@ export interface NavItem {
     | "financialStatements"
     | "fixedAssets"
     | "budgets"
+    | "bankReconciliation"
     | "payroll"
     | "leave"
     | "expenses"
@@ -86,6 +87,12 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["admin", "payroll_manager"],
   },
   { href: "/budgets", label: "Budgets", icon: "budgets", roles: ["admin", "payroll_manager"] },
+  {
+    href: "/bank-reconciliation",
+    label: "Bank Reconciliation",
+    icon: "bankReconciliation",
+    roles: ["admin", "payroll_manager"],
+  },
 ];
 
 export function navForRole(role: Role): NavItem[] {
