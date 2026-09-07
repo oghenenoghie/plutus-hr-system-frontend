@@ -987,3 +987,56 @@ export interface FixedAssetCreateBody {
 export interface FixedAssetDisposeBody {
   proceeds_minor?: number;
 }
+
+// --- budgets ---
+
+export interface BudgetLineCreateBody {
+  account_code: string;
+  amount_minor: number;
+}
+
+export interface BudgetCreateBody {
+  name: string;
+  department_id?: string | null;
+  period_start: string;
+  period_end: string;
+  lines: BudgetLineCreateBody[];
+}
+
+export interface BudgetLine {
+  account_code: string;
+  account_name: string;
+  amount_minor: number;
+}
+
+export interface Budget {
+  id: string;
+  org_id: string;
+  department_id: string | null;
+  name: string;
+  period_start: string;
+  period_end: string;
+  lines: BudgetLine[];
+  total_budgeted_minor: number;
+  created_at: string;
+}
+
+export interface BudgetLineActual {
+  account_code: string;
+  account_name: string;
+  account_type: AccountType;
+  budgeted_minor: number;
+  actual_minor: number;
+  variance_minor: number;
+}
+
+export interface BudgetVsActual {
+  budget_id: string;
+  name: string;
+  period_start: string;
+  period_end: string;
+  lines: BudgetLineActual[];
+  total_budgeted_minor: number;
+  total_actual_minor: number;
+  total_variance_minor: number;
+}

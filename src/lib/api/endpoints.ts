@@ -13,6 +13,9 @@ import type {
   Branch,
   BranchCreateBody,
   BranchUpdateBody,
+  Budget,
+  BudgetCreateBody,
+  BudgetVsActual,
   Candidate,
   CandidateCreateBody,
   CandidateUpdateBody,
@@ -394,6 +397,18 @@ export const fixedAssetsApi = {
     apiFetch<FixedAsset>(`/fixed-assets/${id}/depreciate`, { method: "POST", body: {} }),
   dispose: (id: string, body: FixedAssetDisposeBody) =>
     apiFetch<FixedAsset>(`/fixed-assets/${id}/dispose`, { method: "POST", body }),
+};
+
+// --- budgets ---
+
+export const budgetsApi = {
+  list: () => apiFetch<Budget[]>("/budgets"),
+  get: (id: string) => apiFetch<Budget>(`/budgets/${id}`),
+  create: (body: BudgetCreateBody) => apiFetch<Budget>("/budgets", { method: "POST", body }),
+  update: (id: string, body: BudgetCreateBody) =>
+    apiFetch<Budget>(`/budgets/${id}`, { method: "PUT", body }),
+  remove: (id: string) => apiFetch<void>(`/budgets/${id}`, { method: "DELETE" }),
+  actuals: (id: string) => apiFetch<BudgetVsActual>(`/budgets/${id}/actuals`),
 };
 
 // --- pay runs ---
