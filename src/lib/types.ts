@@ -447,6 +447,60 @@ export interface UnionMembershipTerminateBody {
   terminated_date: string;
 }
 
+// --- company assets ---
+
+export type CompanyAssetCategory = "laptop" | "phone" | "vehicle" | "furniture" | "other";
+export type CompanyAssetStatus = "available" | "assigned" | "maintenance" | "retired";
+
+export interface CompanyAsset {
+  id: string;
+  org_id: string;
+  name: string;
+  asset_tag: string;
+  category: CompanyAssetCategory;
+  status: CompanyAssetStatus;
+  purchase_date: string | null;
+  purchase_value_minor: number | null;
+  created_at: string;
+}
+
+export interface CompanyAssetCreateBody {
+  name: string;
+  asset_tag: string;
+  category: CompanyAssetCategory;
+  purchase_date?: string | null;
+  purchase_value_minor?: number | null;
+}
+
+export interface CompanyAssetUpdateBody {
+  name?: string;
+  category?: CompanyAssetCategory;
+  status?: CompanyAssetStatus;
+  purchase_date?: string | null;
+  purchase_value_minor?: number | null;
+}
+
+export interface AssetAssignment {
+  id: string;
+  org_id: string;
+  asset_id: string;
+  employee_id: string;
+  assigned_date: string;
+  returned_date: string | null;
+  condition_notes: string | null;
+  created_at: string;
+}
+
+export interface AssetAssignmentCreateBody {
+  employee_id: string;
+  assigned_date: string;
+}
+
+export interface AssetAssignmentReturnBody {
+  returned_date: string;
+  condition_notes?: string | null;
+}
+
 // --- policies ---
 
 export interface Policy {

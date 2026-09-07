@@ -15,6 +15,7 @@ import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
 import {
   benefitsApi,
+  companyAssetsApi,
   employeesApi,
   expensesApi,
   leaveApi,
@@ -44,6 +45,9 @@ export default function MyWorkspacePage() {
   const courses = useApiResource(() => trainingCoursesApi.list());
   const coursesById = new Map((courses.data ?? []).map((course) => [course.id, course]));
   const unionMemberships = useApiResource(() => unionMembershipsApi.mine());
+  const myAssets = useApiResource(() => companyAssetsApi.mine());
+  const allAssets = useApiResource(() => companyAssetsApi.list());
+  const assetsById = new Map((allAssets.data ?? []).map((asset) => [asset.id, asset]));
 
   const latestPayslip = payslips.data
     ? [...payslips.data].sort((a, b) => (a.period_end < b.period_end ? 1 : -1))[0]
@@ -302,6 +306,35 @@ export default function MyWorkspacePage() {
                         {membership.status}
                       </Badge>
                     </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : null}
+        </Card>
+
+        <Card>
+          <CardHeader title="My Assets" />
+          {myAssets.loading ? <LoadingState /> : null}
+          {myAssets.error ? <ErrorState message={myAssets.error} /> : null}
+          {myAssets.data && myAssets.data.length === 0 ? (
+            <EmptyState label="No company assets currently assigned to you." />
+          ) : null}
+          {myAssets.data && myAssets.data.length > 0 ? (
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Asset</Th>
+                  <Th>Tag</Th>
+                  <Th>Assigned</Th>
+                </tr>
+              </Thead>
+              <tbody>
+                {myAssets.data.map((assignment) => (
+                  <tr key={assignment.id}>
+                    <Td>{assetsById.get(assignment.asset_id)?.name ?? "—"}</Td>
+                    <Td>{assetsById.get(assignment.asset_id)?.asset_tag ?? "—"}</Td>
+                    <Td>{formatDate(assignment.assigned_date)}</Td>
                   </tr>
                 ))}
               </tbody>

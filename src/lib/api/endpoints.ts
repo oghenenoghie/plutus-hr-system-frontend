@@ -1,5 +1,8 @@
 import { apiFetch } from "@/lib/api/client";
 import type {
+  AssetAssignment,
+  AssetAssignmentCreateBody,
+  AssetAssignmentReturnBody,
   Benefit,
   Branch,
   BranchCreateBody,
@@ -7,6 +10,9 @@ import type {
   Candidate,
   CandidateCreateBody,
   CandidateUpdateBody,
+  CompanyAsset,
+  CompanyAssetCreateBody,
+  CompanyAssetUpdateBody,
   Contractor,
   Department,
   DepartmentCreateBody,
@@ -242,6 +248,26 @@ export const unionMembershipsApi = {
     apiFetch<UnionMembership>(`/union-memberships/${id}`, { method: "PATCH", body }),
   terminate: (id: string, body: UnionMembershipTerminateBody) =>
     apiFetch<UnionMembership>(`/union-memberships/${id}/terminate`, { method: "POST", body }),
+};
+
+// --- company assets ---
+
+export const companyAssetsApi = {
+  list: () => apiFetch<CompanyAsset[]>("/company-assets"),
+  get: (id: string) => apiFetch<CompanyAsset>(`/company-assets/${id}`),
+  mine: () => apiFetch<AssetAssignment[]>("/company-assets/me"),
+  create: (body: CompanyAssetCreateBody) =>
+    apiFetch<CompanyAsset>("/company-assets", { method: "POST", body }),
+  update: (id: string, body: CompanyAssetUpdateBody) =>
+    apiFetch<CompanyAsset>(`/company-assets/${id}`, { method: "PATCH", body }),
+  assignments: (id: string) => apiFetch<AssetAssignment[]>(`/company-assets/${id}/assignments`),
+  assign: (id: string, body: AssetAssignmentCreateBody) =>
+    apiFetch<AssetAssignment>(`/company-assets/${id}/assignments`, { method: "POST", body }),
+  returnAssignment: (assignmentId: string, body: AssetAssignmentReturnBody) =>
+    apiFetch<AssetAssignment>(`/company-assets/assignments/${assignmentId}/return`, {
+      method: "POST",
+      body,
+    }),
 };
 
 // --- pay runs ---
