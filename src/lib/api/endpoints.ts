@@ -7,6 +7,9 @@ import type {
   AssetAssignmentCreateBody,
   AssetAssignmentReturnBody,
   BalanceSheet,
+  BankStatementLine,
+  BankStatementLineCreateBody,
+  BankStatementLineMatchBody,
   Benefit,
   Bill,
   BillCreateBody,
@@ -25,6 +28,8 @@ import type {
   CompanyAsset,
   CompanyAssetCreateBody,
   CompanyAssetUpdateBody,
+  CompanyBankAccount,
+  CompanyBankAccountCreateBody,
   Contractor,
   Customer,
   CustomerCreateBody,
@@ -73,6 +78,7 @@ import type {
   Policy,
   PolicyCreateBody,
   PolicyUpdateBody,
+  ReconciliationSummary,
   Shift,
   ShiftCreateBody,
   ShiftUpdateBody,
@@ -409,6 +415,34 @@ export const budgetsApi = {
     apiFetch<Budget>(`/budgets/${id}`, { method: "PUT", body }),
   remove: (id: string) => apiFetch<void>(`/budgets/${id}`, { method: "DELETE" }),
   actuals: (id: string) => apiFetch<BudgetVsActual>(`/budgets/${id}/actuals`),
+};
+
+// --- bank reconciliation ---
+
+export const companyBankAccountsApi = {
+  list: () => apiFetch<CompanyBankAccount[]>("/company-bank-accounts"),
+  get: (id: string) => apiFetch<CompanyBankAccount>(`/company-bank-accounts/${id}`),
+  create: (body: CompanyBankAccountCreateBody) =>
+    apiFetch<CompanyBankAccount>("/company-bank-accounts", { method: "POST", body }),
+  statementLines: (id: string) =>
+    apiFetch<BankStatementLine[]>(`/company-bank-accounts/${id}/statement-lines`),
+  addStatementLine: (id: string, body: BankStatementLineCreateBody) =>
+    apiFetch<BankStatementLine>(`/company-bank-accounts/${id}/statement-lines`, {
+      method: "POST",
+      body,
+    }),
+  matchStatementLine: (id: string, lineId: string, body: BankStatementLineMatchBody) =>
+    apiFetch<BankStatementLine>(
+      `/company-bank-accounts/${id}/statement-lines/${lineId}/match`,
+      { method: "POST", body },
+    ),
+  unmatchStatementLine: (id: string, lineId: string) =>
+    apiFetch<BankStatementLine>(
+      `/company-bank-accounts/${id}/statement-lines/${lineId}/unmatch`,
+      { method: "POST", body: {} },
+    ),
+  reconciliation: (id: string) =>
+    apiFetch<ReconciliationSummary>(`/company-bank-accounts/${id}/reconciliation`),
 };
 
 // --- pay runs ---

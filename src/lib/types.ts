@@ -1040,3 +1040,52 @@ export interface BudgetVsActual {
   total_actual_minor: number;
   total_variance_minor: number;
 }
+
+// --- bank reconciliation ---
+
+export interface CompanyBankAccountCreateBody {
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  chart_account_code: string;
+}
+
+export interface CompanyBankAccount {
+  id: string;
+  org_id: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  chart_account_code: string;
+  created_at: string;
+}
+
+export interface BankStatementLineCreateBody {
+  statement_date: string;
+  description: string;
+  amount_minor: number;
+}
+
+export interface BankStatementLine {
+  id: string;
+  org_id: string;
+  bank_account_id: string;
+  statement_date: string;
+  description: string;
+  amount_minor: number;
+  matched_ledger_entry_id: string | null;
+  created_at: string;
+}
+
+export interface BankStatementLineMatchBody {
+  ledger_entry_id: string;
+}
+
+export interface ReconciliationSummary {
+  bank_account_id: string;
+  bank_balance_minor: number;
+  ledger_balance_minor: number;
+  difference_minor: number;
+  unmatched_statement_lines: BankStatementLine[];
+  unmatched_ledger_entries: LedgerEntry[];
+}

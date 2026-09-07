@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -15,14 +17,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   if (!user) return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
-      <Sidebar role={user.role} />
+      <Sidebar role={user.role} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto px-8 py-8">{children}</main>
+        <TopBar onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-8">{children}</main>
       </div>
     </div>
   );

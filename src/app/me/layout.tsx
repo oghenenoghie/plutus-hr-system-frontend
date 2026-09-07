@@ -8,7 +8,7 @@ export default function MeLayout({ children }: { children: React.ReactNode }) {
     <AuthGate>
       <div className="flex h-screen flex-col overflow-hidden bg-bg">
         <TopBar />
-        <main className="flex-1 overflow-y-auto px-8 py-8">
+        <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-8">
           <div className="mx-auto max-w-4xl">{children}</div>
         </main>
       </div>
