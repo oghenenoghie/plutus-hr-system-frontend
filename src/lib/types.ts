@@ -389,6 +389,29 @@ export interface DisciplinaryCaseResolveBody {
   resolution_notes?: string | null;
 }
 
+// --- notifications ---
+
+export interface Notification {
+  id: string;
+  org_id: string;
+  account_id: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationBroadcastBody {
+  title: string;
+  body?: string | null;
+  link?: string | null;
+}
+
+export interface NotificationUnreadCount {
+  unread_count: number;
+}
+
 // --- policies ---
 
 export interface Policy {

@@ -719,6 +719,29 @@ export const MOCK_FIXTURES = {
     resolution_date: null,
     created_at: "2026-09-02T09:00:00Z",
   },
+  "/notifications/me": [
+    {
+      id: "nt111111-0000-0000-0000-000000000001",
+      org_id: "org-1",
+      account_id: "acct-1",
+      title: "New performance review submitted",
+      body: "Tunde Bakare's review for Jan–Jun 2026 is ready for your acknowledgement.",
+      link: "/performance/pr111111-0000-0000-0000-000000000001",
+      read_at: null,
+      created_at: "2026-09-06T09:00:00Z",
+    },
+    {
+      id: "nt111111-0000-0000-0000-000000000002",
+      org_id: "org-1",
+      account_id: "acct-1",
+      title: "Payroll cutoff moved to Friday",
+      body: "Submit any final changes before 5pm.",
+      link: "/payroll",
+      read_at: "2026-09-05T10:00:00Z",
+      created_at: "2026-09-04T09:00:00Z",
+    },
+  ],
+  "/notifications/me/unread-count": { unread_count: 1 },
   "/policies": [
     {
       id: "pl111111-0000-0000-0000-000000000001",

@@ -3,6 +3,7 @@
 import { LogOut } from "lucide-react";
 
 import { Avatar } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export function TopBar() {
@@ -13,7 +14,8 @@ export function TopBar() {
       <div className="rounded-badge bg-good-tint px-3 py-[5px] text-[11px] font-bold uppercase tracking-[0.03em] text-good">
         {user?.org_name ?? "—"}
       </div>
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3.5">
+        <NotificationBell />
         <Avatar name={user?.role ?? "?"} size="md" />
         <button
           type="button"

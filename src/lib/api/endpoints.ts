@@ -30,6 +30,9 @@ import type {
   LeaveRequest,
   Loan,
   MeResponse,
+  Notification,
+  NotificationBroadcastBody,
+  NotificationUnreadCount,
   OrgSummary,
   PayRun,
   PayRunCreateBody,
@@ -206,6 +209,18 @@ export const disciplinaryCasesApi = {
     apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}`, { method: "PATCH", body }),
   resolve: (id: string, body: DisciplinaryCaseResolveBody) =>
     apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}/resolve`, { method: "POST", body }),
+};
+
+// --- notifications ---
+
+export const notificationsApi = {
+  mine: () => apiFetch<Notification[]>("/notifications/me"),
+  unreadCount: () => apiFetch<NotificationUnreadCount>("/notifications/me/unread-count"),
+  markRead: (id: string) =>
+    apiFetch<Notification>(`/notifications/me/${id}/read`, { method: "POST", body: {} }),
+  markAllRead: () => apiFetch<void>("/notifications/me/read-all", { method: "POST", body: {} }),
+  broadcast: (body: NotificationBroadcastBody) =>
+    apiFetch<Notification[]>("/notifications/broadcast", { method: "POST", body }),
 };
 
 // --- pay runs ---
