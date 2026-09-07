@@ -250,6 +250,44 @@ export interface CandidateUpdateBody {
   status?: CandidateStatus;
 }
 
+// --- performance reviews ---
+
+export type PerformanceReviewStatus = "draft" | "submitted" | "acknowledged";
+
+export interface PerformanceReview {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  reviewer_id: string | null;
+  period_start: string;
+  period_end: string;
+  status: PerformanceReviewStatus;
+  rating: number | null;
+  goals: string | null;
+  manager_comments: string | null;
+  employee_comments: string | null;
+  submitted_date: string | null;
+  acknowledged_date: string | null;
+  created_at: string;
+}
+
+export interface PerformanceReviewCreateBody {
+  employee_id: string;
+  reviewer_id?: string | null;
+  period_start: string;
+  period_end: string;
+  goals?: string | null;
+}
+
+export interface PerformanceReviewSubmitBody {
+  rating?: number | null;
+  manager_comments?: string | null;
+}
+
+export interface PerformanceReviewAcknowledgeBody {
+  employee_comments?: string | null;
+}
+
 // --- policies ---
 
 export interface Policy {

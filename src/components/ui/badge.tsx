@@ -46,6 +46,9 @@ const STATUS_TONE: Record<string, Tone> = {
   interviewing: "warn",
   offered: "warn",
   hired: "good",
+  // performance reviews
+  submitted: "warn",
+  acknowledged: "good",
 };
 
 export function StatusBadge({ status }: { status: string }) {

@@ -1,12 +1,18 @@
 "use client";
 
+import { useState } from "react";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge, StatusBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
+import { Textarea } from "@/components/ui/input";
 import { KpiTile } from "@/components/ui/kpi-tile";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
+import { useToast } from "@/components/ui/toast";
+import { ApiError } from "@/lib/api/client";
 import {
   benefitsApi,
   employeesApi,
@@ -14,10 +20,12 @@ import {
   leaveApi,
   loansApi,
   payRunsApi,
+  performanceReviewsApi,
   policiesApi,
 } from "@/lib/api/endpoints";
 import { formatDate, formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
+import type { PerformanceReview } from "@/lib/types";
 
 export default function MyWorkspacePage() {
   const employee = useApiResource(() => employeesApi.me());
@@ -28,6 +36,7 @@ export default function MyWorkspacePage() {
   const loans = useApiResource(() => loansApi.mine());
   const benefits = useApiResource(() => benefitsApi.mine());
   const policies = useApiResource(() => policiesApi.list());
+  const performanceReviews = useApiResource(() => performanceReviewsApi.me());
 
   const latestPayslip = payslips.data
     ? [...payslips.data].sort((a, b) => (a.period_end < b.period_end ? 1 : -1))[0]
@@ -210,6 +219,26 @@ export default function MyWorkspacePage() {
         </Card>
 
         <Card>
+          <CardHeader title="Performance Reviews" />
+          {performanceReviews.loading ? <LoadingState /> : null}
+          {performanceReviews.error ? <ErrorState message={performanceReviews.error} /> : null}
+          {performanceReviews.data && performanceReviews.data.length === 0 ? (
+            <EmptyState label="No performance reviews on record yet." />
+          ) : null}
+          {performanceReviews.data && performanceReviews.data.length > 0 ? (
+            <ul className="flex flex-col gap-4">
+              {performanceReviews.data.map((review) => (
+                <PerformanceReviewItem
+                  key={review.id}
+                  review={review}
+                  onAcknowledged={() => performanceReviews.reload()}
+                />
+              ))}
+            </ul>
+          ) : null}
+        </Card>
+
+        <Card>
           <CardHeader title="Company Policies" />
           {policies.loading ? <LoadingState /> : null}
           {policies.error ? <ErrorState message={policies.error} /> : null}
@@ -230,6 +259,80 @@ export default function MyWorkspacePage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function PerformanceReviewItem({
+  review,
+  onAcknowledged,
+}: {
+  review: PerformanceReview;
+  onAcknowledged: () => void;
+}) {
+  const { showToast } = useToast();
+  const [comments, setComments] = useState("");
+  const [acknowledging, setAcknowledging] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function acknowledge() {
+    setSubmitting(true);
+    try {
+      await performanceReviewsApi.acknowledge(review.id, { employee_comments: comments || null });
+      showToast("Review acknowledged", "good");
+      onAcknowledged();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <li>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-bold text-ink">
+          {formatDate(review.period_start)} – {formatDate(review.period_end)}
+        </span>
+        <div className="flex items-center gap-2">
+          {review.rating != null ? (
+            <span className="text-[12px] text-ink-soft">{review.rating}/5</span>
+          ) : null}
+          <StatusBadge status={review.status} />
+        </div>
+      </div>
+      {review.manager_comments ? (
+        <p className="mt-1 text-[12px] text-ink-soft">{review.manager_comments}</p>
+      ) : null}
+      {review.status === "submitted" ? (
+        acknowledging ? (
+          <div className="mt-2 flex flex-col gap-2">
+            <Textarea
+              value={comments}
+              onChange={(event) => setComments(event.target.value)}
+              placeholder="Optional comments"
+              rows={2}
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="md" variant="secondary" onClick={() => setAcknowledging(false)}>
+                Cancel
+              </Button>
+              <Button size="md" onClick={acknowledge} disabled={submitting}>
+                {submitting ? "Saving…" : "Confirm"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-2">
+            <Button size="md" variant="secondary" onClick={() => setAcknowledging(true)}>
+              Acknowledge
+            </Button>
+          </div>
+        )
+      ) : null}
+      {review.employee_comments ? (
+        <p className="mt-1 text-[12px] italic text-ink-soft">“{review.employee_comments}”</p>
+      ) : null}
+    </li>
   );
 }
 

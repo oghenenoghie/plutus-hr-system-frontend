@@ -30,6 +30,10 @@ import type {
   PayRun,
   PayRunCreateBody,
   Payslip,
+  PerformanceReview,
+  PerformanceReviewAcknowledgeBody,
+  PerformanceReviewCreateBody,
+  PerformanceReviewSubmitBody,
   Policy,
   PolicyCreateBody,
   PolicyUpdateBody,
@@ -142,6 +146,23 @@ export const candidatesApi = {
   get: (id: string) => apiFetch<Candidate>(`/candidates/${id}`),
   update: (id: string, body: CandidateUpdateBody) =>
     apiFetch<Candidate>(`/candidates/${id}`, { method: "PATCH", body }),
+};
+
+// --- performance reviews ---
+
+export const performanceReviewsApi = {
+  list: () => apiFetch<PerformanceReview[]>("/performance-reviews"),
+  me: () => apiFetch<PerformanceReview[]>("/performance-reviews/me"),
+  get: (id: string) => apiFetch<PerformanceReview>(`/performance-reviews/${id}`),
+  create: (body: PerformanceReviewCreateBody) =>
+    apiFetch<PerformanceReview>("/performance-reviews", { method: "POST", body }),
+  submit: (id: string, body: PerformanceReviewSubmitBody) =>
+    apiFetch<PerformanceReview>(`/performance-reviews/${id}/submit`, { method: "POST", body }),
+  acknowledge: (id: string, body: PerformanceReviewAcknowledgeBody) =>
+    apiFetch<PerformanceReview>(`/performance-reviews/${id}/acknowledge`, {
+      method: "POST",
+      body,
+    }),
 };
 
 // --- pay runs ---
