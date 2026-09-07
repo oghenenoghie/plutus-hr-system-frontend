@@ -944,6 +944,41 @@ export const MOCK_FIXTURES = {
     { id: "invoice-02", org_id: "org-1", customer_id: "cus-02", invoice_number: "INV-3002", issue_date: "2026-09-03", due_date: "2026-09-24", revenue_account_code: "revenue", amount_minor: 900_000_00, description: "Q3 logistics support retainer", status: "sent", paid_at: null, created_at: "2026-09-03T09:00:00Z" },
     { id: "invoice-03", org_id: "org-1", customer_id: "cus-01", invoice_number: "INV-2998", issue_date: "2026-08-15", due_date: "2026-08-29", revenue_account_code: "revenue", amount_minor: 400_000_00, description: "August consulting services", status: "paid", paid_at: "2026-08-22T09:00:00Z", created_at: "2026-08-15T09:00:00Z" },
   ],
+  "/financial-statements/balance-sheet": {
+    as_of: null,
+    assets: [
+      { account: "accounts_receivable", account_name: "Accounts Receivable", balance_minor: 900_000_00 },
+      { account: "cash", account_name: "Cash", balance_minor: -865_675_00 },
+      { account: "employee_loan_receivable", account_name: "Employee Loans Receivable", balance_minor: 0 },
+    ],
+    total_assets_minor: 34_325_00,
+    liabilities: [
+      { account: "accounts_payable", account_name: "Accounts Payable", balance_minor: 300_000_00 },
+      { account: "net_pay_payable", account_name: "Net Pay Payable", balance_minor: 0 },
+      { account: "nhf_payable", account_name: "NHF Payable", balance_minor: 39_125_00 },
+      { account: "nsitf_payable", account_name: "NSITF Payable", balance_minor: 0 },
+      { account: "paye_payable", account_name: "PAYE Payable", balance_minor: 210_000_00 },
+      { account: "pension_payable", account_name: "Pension Payable", balance_minor: 250_400_00 },
+      { account: "wht_payable", account_name: "WHT Payable", balance_minor: 0 },
+    ],
+    total_liabilities_minor: 799_525_00,
+    equity: [],
+    total_equity_minor: 0,
+  },
+  "/financial-statements/income-statement": {
+    from_date: null,
+    to_date: null,
+    revenue: [{ account: "revenue", account_name: "Revenue", balance_minor: 1_300_000_00 }],
+    total_revenue_minor: 1_300_000_00,
+    expenses: [
+      { account: "contractor_expense", account_name: "Contractor Expense", balance_minor: 375_000_00 },
+      { account: "payroll_expense_employer_pension", account_name: "Payroll Expense — Employer Pension", balance_minor: 125_200_00 },
+      { account: "payroll_expense_gross", account_name: "Payroll Expense — Gross Pay", balance_minor: 1_565_000_00 },
+      { account: "payroll_expense_nsitf", account_name: "Payroll Expense — NSITF", balance_minor: 0 },
+    ],
+    total_expenses_minor: 2_065_200_00,
+    net_income_minor: -765_200_00,
+  },
   "/policies": [
     {
       id: "pl111111-0000-0000-0000-000000000001",
