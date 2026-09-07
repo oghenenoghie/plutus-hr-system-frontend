@@ -447,6 +447,79 @@ export interface UnionMembershipTerminateBody {
   terminated_date: string;
 }
 
+// --- company assets ---
+
+export type CompanyAssetCategory = "laptop" | "phone" | "vehicle" | "furniture" | "other";
+export type CompanyAssetStatus = "available" | "assigned" | "maintenance" | "retired";
+
+export interface CompanyAsset {
+  id: string;
+  org_id: string;
+  name: string;
+  asset_tag: string;
+  category: CompanyAssetCategory;
+  status: CompanyAssetStatus;
+  purchase_date: string | null;
+  purchase_value_minor: number | null;
+  created_at: string;
+}
+
+export interface CompanyAssetCreateBody {
+  name: string;
+  asset_tag: string;
+  category: CompanyAssetCategory;
+  purchase_date?: string | null;
+  purchase_value_minor?: number | null;
+}
+
+export interface CompanyAssetUpdateBody {
+  name?: string;
+  category?: CompanyAssetCategory;
+  status?: CompanyAssetStatus;
+  purchase_date?: string | null;
+  purchase_value_minor?: number | null;
+}
+
+export interface AssetAssignment {
+  id: string;
+  org_id: string;
+  asset_id: string;
+  employee_id: string;
+  assigned_date: string;
+  returned_date: string | null;
+  condition_notes: string | null;
+  created_at: string;
+}
+
+export interface AssetAssignmentCreateBody {
+  employee_id: string;
+  assigned_date: string;
+}
+
+export interface AssetAssignmentReturnBody {
+  returned_date: string;
+  condition_notes?: string | null;
+}
+
+// --- api keys ---
+
+export interface ApiKey {
+  id: string;
+  org_id: string;
+  name: string;
+  key_prefix: string;
+  revoked_at: string | null;
+  created_at: string;
+}
+
+export interface ApiKeyCreated extends ApiKey {
+  key: string;
+}
+
+export interface ApiKeyCreateBody {
+  name: string;
+}
+
 // --- policies ---
 
 export interface Policy {
@@ -682,4 +755,65 @@ export interface SimulationOut {
   paye_minor: number;
   loan_deduction_minor: number;
   net_pay_minor: number;
+}
+
+// --- chart of accounts / general ledger ---
+
+export type AccountType = "asset" | "liability" | "equity" | "revenue" | "expense";
+
+export interface ChartAccount {
+  id: string;
+  org_id: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  is_system: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ChartAccountCreateBody {
+  code: string;
+  name: string;
+  type: AccountType;
+}
+
+export interface ChartAccountUpdateBody {
+  name?: string;
+  is_active?: boolean;
+}
+
+export interface LedgerEntry {
+  id: string;
+  org_id: string;
+  journal_entry_id: string;
+  pay_run_id: string | null;
+  employee_id: string | null;
+  account: string;
+  account_name: string | null;
+  debit_minor: number;
+  credit_minor: number;
+  description: string | null;
+  created_at: string;
+}
+
+export interface TrialBalanceLine {
+  account: string;
+  account_name: string | null;
+  account_type: AccountType | null;
+  total_debit_minor: number;
+  total_credit_minor: number;
+  balance_minor: number;
+}
+
+export interface JournalEntryLineCreateBody {
+  account_code: string;
+  debit_minor?: number;
+  credit_minor?: number;
+  description?: string | null;
+}
+
+export interface JournalEntryCreateBody {
+  description: string;
+  lines: JournalEntryLineCreateBody[];
 }

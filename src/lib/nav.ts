@@ -17,6 +17,9 @@ export interface NavItem {
     | "learning"
     | "employeeRelations"
     | "unionDues"
+    | "assets"
+    | "integrations"
+    | "generalLedger"
     | "payroll"
     | "leave"
     | "expenses"
@@ -46,6 +49,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/learning", label: "Learning", icon: "learning", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/employee-relations", label: "Employee Relations", icon: "employeeRelations", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/union-dues", label: "Union Dues", icon: "unionDues", roles: ["admin", "payroll_manager"] },
+  { href: "/assets", label: "Company Assets", icon: "assets", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/payroll", label: "Payroll Runs", icon: "payroll", roles: ["admin", "payroll_manager"] },
   { href: "/leave", label: "Leave", icon: "leave", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/expenses", label: "Expenses", icon: "expenses", roles: ["admin", "payroll_manager", "manager"] },
@@ -55,6 +59,13 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/reports", label: "Statutory Reports", icon: "reports", roles: ["admin", "payroll_manager"] },
   { href: "/settlement", label: "Final Settlement", icon: "settlement", roles: ["admin", "payroll_manager"] },
   { href: "/simulation", label: "Simulation", icon: "simulation", roles: ["admin", "payroll_manager"] },
+  { href: "/integrations", label: "Integrations", icon: "integrations", roles: ["admin"] },
+  {
+    href: "/general-ledger",
+    label: "General Ledger",
+    icon: "generalLedger",
+    roles: ["admin", "payroll_manager"],
+  },
 ];
 
 export function navForRole(role: Role): NavItem[] {

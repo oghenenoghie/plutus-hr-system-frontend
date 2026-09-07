@@ -1,5 +1,11 @@
 import { apiFetch } from "@/lib/api/client";
 import type {
+  ApiKey,
+  ApiKeyCreateBody,
+  ApiKeyCreated,
+  AssetAssignment,
+  AssetAssignmentCreateBody,
+  AssetAssignmentReturnBody,
   Benefit,
   Branch,
   BranchCreateBody,
@@ -7,6 +13,12 @@ import type {
   Candidate,
   CandidateCreateBody,
   CandidateUpdateBody,
+  ChartAccount,
+  ChartAccountCreateBody,
+  ChartAccountUpdateBody,
+  CompanyAsset,
+  CompanyAssetCreateBody,
+  CompanyAssetUpdateBody,
   Contractor,
   Department,
   DepartmentCreateBody,
@@ -26,8 +38,10 @@ import type {
   JobPosting,
   JobPostingCreateBody,
   JobPostingUpdateBody,
+  JournalEntryCreateBody,
   LeaveBalance,
   LeaveRequest,
+  LedgerEntry,
   Loan,
   MeResponse,
   Notification,
@@ -57,6 +71,7 @@ import type {
   TrainingEnrollment,
   TrainingEnrollmentCreateBody,
   TrainingEnrollmentUpdateBody,
+  TrialBalanceLine,
   UnionMembership,
   UnionMembershipCreateBody,
   UnionMembershipTerminateBody,
@@ -242,6 +257,62 @@ export const unionMembershipsApi = {
     apiFetch<UnionMembership>(`/union-memberships/${id}`, { method: "PATCH", body }),
   terminate: (id: string, body: UnionMembershipTerminateBody) =>
     apiFetch<UnionMembership>(`/union-memberships/${id}/terminate`, { method: "POST", body }),
+};
+
+// --- company assets ---
+
+export const companyAssetsApi = {
+  list: () => apiFetch<CompanyAsset[]>("/company-assets"),
+  get: (id: string) => apiFetch<CompanyAsset>(`/company-assets/${id}`),
+  mine: () => apiFetch<AssetAssignment[]>("/company-assets/me"),
+  create: (body: CompanyAssetCreateBody) =>
+    apiFetch<CompanyAsset>("/company-assets", { method: "POST", body }),
+  update: (id: string, body: CompanyAssetUpdateBody) =>
+    apiFetch<CompanyAsset>(`/company-assets/${id}`, { method: "PATCH", body }),
+  assignments: (id: string) => apiFetch<AssetAssignment[]>(`/company-assets/${id}/assignments`),
+  assign: (id: string, body: AssetAssignmentCreateBody) =>
+    apiFetch<AssetAssignment>(`/company-assets/${id}/assignments`, { method: "POST", body }),
+  returnAssignment: (assignmentId: string, body: AssetAssignmentReturnBody) =>
+    apiFetch<AssetAssignment>(`/company-assets/assignments/${assignmentId}/return`, {
+      method: "POST",
+      body,
+    }),
+};
+
+// --- api keys ---
+
+export const apiKeysApi = {
+  list: () => apiFetch<ApiKey[]>("/api-keys"),
+  create: (body: ApiKeyCreateBody) =>
+    apiFetch<ApiKeyCreated>("/api-keys", { method: "POST", body }),
+  revoke: (id: string) => apiFetch<ApiKey>(`/api-keys/${id}/revoke`, { method: "POST", body: {} }),
+};
+
+// --- chart of accounts ---
+
+export const chartAccountsApi = {
+  list: () => apiFetch<ChartAccount[]>("/chart-of-accounts"),
+  create: (body: ChartAccountCreateBody) =>
+    apiFetch<ChartAccount>("/chart-of-accounts", { method: "POST", body }),
+  update: (id: string, body: ChartAccountUpdateBody) =>
+    apiFetch<ChartAccount>(`/chart-of-accounts/${id}`, { method: "PATCH", body }),
+  seedDefaults: () =>
+    apiFetch<ChartAccount[]>("/chart-of-accounts/seed-defaults", { method: "POST", body: {} }),
+};
+
+// --- general ledger ---
+
+export const generalLedgerApi = {
+  entries: (params?: { account?: string; payRunId?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.account) query.set("account", params.account);
+    if (params?.payRunId) query.set("pay_run_id", params.payRunId);
+    const qs = query.toString();
+    return apiFetch<LedgerEntry[]>(`/general-ledger/entries${qs ? `?${qs}` : ""}`);
+  },
+  trialBalance: () => apiFetch<TrialBalanceLine[]>("/general-ledger/trial-balance"),
+  postJournalEntry: (body: JournalEntryCreateBody) =>
+    apiFetch<LedgerEntry[]>("/general-ledger/journal-entries", { method: "POST", body }),
 };
 
 // --- pay runs ---

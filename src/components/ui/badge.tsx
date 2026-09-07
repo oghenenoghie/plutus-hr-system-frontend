@@ -52,6 +52,11 @@ const STATUS_TONE: Record<string, Tone> = {
   // training enrollments
   enrolled: "neutral",
   in_progress: "warn",
+  // company assets
+  available: "good",
+  assigned: "warn",
+  maintenance: "warn",
+  retired: "neutral",
 };
 
 export function StatusBadge({ status }: { status: string }) {
