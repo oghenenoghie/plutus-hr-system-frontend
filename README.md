@@ -57,4 +57,4 @@ Colors, type scale, spacing and component patterns follow Plutus's "Ledger" desi
 
 ## What's scaffolded vs. stubbed
 
-Every backend list/read endpoint is wired up and rendering real data. Write actions are wired where they're a single click (leave/expense approvals, statutory filing/remittance, benefit lookups). Multi-field create forms (new employee, new pay run, new loan/expense/benefit application) are **not** built yet — that's the natural next slice of work on top of this scaffold.
+Every backend list/read endpoint is wired up and rendering real data. Write actions are wired where they're a single click (leave/expense approvals, statutory filing/remittance, benefit lookups). Multi-field create forms are done for the two that unblock everything else — **New Employee** (`/employees/new`) and **New Pay Run** (`/payroll/new`). Still not built: new loan/expense/benefit application forms — that's the natural next slice of work on top of this scaffold.
