@@ -9,13 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
-import { employeesApi } from "@/lib/api/endpoints";
+import { departmentsApi, employeesApi } from "@/lib/api/endpoints";
 import { formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 
 export default function EmployeesPage() {
   const router = useRouter();
   const employees = useApiResource(() => employeesApi.list());
+  const departments = useApiResource(() => departmentsApi.list());
+  const departmentsById = new Map((departments.data ?? []).map((department) => [department.id, department]));
 
   return (
     <div>
@@ -36,6 +38,7 @@ export default function EmployeesPage() {
             <Thead>
               <tr>
                 <Th>Employee</Th>
+                <Th>Department</Th>
                 <Th>State</Th>
                 <Th>Type</Th>
                 <Th>TIN</Th>
@@ -60,6 +63,11 @@ export default function EmployeesPage() {
                           </div>
                         </div>
                       </div>
+                    </Td>
+                    <Td>
+                      {employee.department_id
+                        ? (departmentsById.get(employee.department_id)?.name ?? "—")
+                        : "—"}
                     </Td>
                     <Td>{employee.state_of_residence}</Td>
                     <Td>{titleCase(employee.employment_type)}</Td>
