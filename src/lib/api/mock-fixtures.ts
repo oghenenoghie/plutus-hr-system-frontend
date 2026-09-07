@@ -890,6 +890,10 @@ export const MOCK_FIXTURES = {
     { id: "coa-13", org_id: "org-1", code: "accounts_payable", name: "Accounts Payable", type: "liability", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
     { id: "coa-14", org_id: "org-1", code: "accounts_receivable", name: "Accounts Receivable", type: "asset", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
     { id: "coa-15", org_id: "org-1", code: "revenue", name: "Revenue", type: "revenue", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
+    { id: "coa-16", org_id: "org-1", code: "fixed_assets", name: "Fixed Assets", type: "asset", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
+    { id: "coa-17", org_id: "org-1", code: "accumulated_depreciation", name: "Accumulated Depreciation", type: "asset", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
+    { id: "coa-18", org_id: "org-1", code: "depreciation_expense", name: "Depreciation Expense", type: "expense", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
+    { id: "coa-19", org_id: "org-1", code: "disposal_gain_loss", name: "Gain/Loss on Disposal", type: "expense", is_system: true, is_active: true, created_at: "2026-01-01T09:00:00Z" },
   ],
   "/general-ledger/entries": [
     { id: "le-01", org_id: "org-1", journal_entry_id: "je-payroll-1", pay_run_id: "pr111111-0000-0000-0000-000000000001", employee_id: null, account: "payroll_expense_gross", account_name: "Payroll Expense — Gross Pay", debit_minor: 1_565_000_00, credit_minor: 0, description: "August 2026 payroll run", created_at: "2026-08-31T17:00:00Z" },
@@ -943,6 +947,11 @@ export const MOCK_FIXTURES = {
     { id: "invoice-01", org_id: "org-1", customer_id: "cus-01", invoice_number: "INV-3003", issue_date: "2026-09-03", due_date: "2026-09-30", revenue_account_code: "revenue", amount_minor: 500_000_00, description: "September consulting services", status: "draft", paid_at: null, created_at: "2026-09-03T09:00:00Z" },
     { id: "invoice-02", org_id: "org-1", customer_id: "cus-02", invoice_number: "INV-3002", issue_date: "2026-09-03", due_date: "2026-09-24", revenue_account_code: "revenue", amount_minor: 900_000_00, description: "Q3 logistics support retainer", status: "sent", paid_at: null, created_at: "2026-09-03T09:00:00Z" },
     { id: "invoice-03", org_id: "org-1", customer_id: "cus-01", invoice_number: "INV-2998", issue_date: "2026-08-15", due_date: "2026-08-29", revenue_account_code: "revenue", amount_minor: 400_000_00, description: "August consulting services", status: "paid", paid_at: "2026-08-22T09:00:00Z", created_at: "2026-08-15T09:00:00Z" },
+  ],
+  "/fixed-assets": [
+    { id: "fa-01", org_id: "org-1", name: "Delivery Van", asset_tag: "FA-1001", acquisition_date: "2025-06-01", cost_minor: 5_000_000_00, salvage_value_minor: 500_000_00, useful_life_months: 60, accumulated_depreciation_minor: 750_000_00, book_value_minor: 4_250_000_00, status: "active", disposed_at: null, disposal_proceeds_minor: null, created_at: "2025-06-01T09:00:00Z" },
+    { id: "fa-02", org_id: "org-1", name: "Office Printer", asset_tag: "FA-1002", acquisition_date: "2024-01-01", cost_minor: 200_000_00, salvage_value_minor: 0, useful_life_months: 24, accumulated_depreciation_minor: 200_000_00, book_value_minor: 0, status: "active", disposed_at: null, disposal_proceeds_minor: null, created_at: "2024-01-01T09:00:00Z" },
+    { id: "fa-03", org_id: "org-1", name: "Old Laptop", asset_tag: "FA-0987", acquisition_date: "2022-03-01", cost_minor: 350_000_00, salvage_value_minor: 0, useful_life_months: 36, accumulated_depreciation_minor: 350_000_00, book_value_minor: 0, status: "disposed", disposed_at: "2026-01-15T09:00:00Z", disposal_proceeds_minor: 50_000_00, created_at: "2022-03-01T09:00:00Z" },
   ],
   "/financial-statements/balance-sheet": {
     as_of: null,
