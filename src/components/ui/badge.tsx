@@ -57,9 +57,10 @@ const STATUS_TONE: Record<string, Tone> = {
   assigned: "warn",
   maintenance: "warn",
   retired: "neutral",
-  // bills
+  // bills / invoices
   paid: "good",
   void: "bad",
+  sent: "warn",
 };
 
 export function StatusBadge({ status }: { status: string }) {
