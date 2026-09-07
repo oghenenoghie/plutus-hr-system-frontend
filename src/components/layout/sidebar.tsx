@@ -94,7 +94,7 @@ export function Sidebar({
         />
       ) : null}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex h-full w-64 shrink-0 flex-col overflow-y-auto bg-primary-dark text-white transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex h-full w-64 shrink-0 flex-col bg-primary-dark text-white transition-transform duration-200 lg:static lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -122,7 +122,7 @@ export function Sidebar({
           <div className="mt-0.5 text-[13px] font-bold">{ROLE_LABELS[role]}</div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4 pb-6">
+        <nav className="sidebar-scroll min-h-0 flex-1 space-y-1 overflow-y-auto px-4 pb-6">
           {items.map((item) => {
             const Icon = ICONS[item.icon];
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
