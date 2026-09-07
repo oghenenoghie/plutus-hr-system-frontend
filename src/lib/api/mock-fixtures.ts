@@ -352,6 +352,26 @@ export const MOCK_FIXTURES = {
       created_at: "2023-03-01T09:00:00Z",
     },
   ],
+  "/policies": [
+    {
+      id: "pl111111-0000-0000-0000-000000000001",
+      org_id: "org-1",
+      title: "Leave Policy",
+      category: "HR",
+      body: "All full-time employees are entitled to 20 days of paid annual leave per year, accrued monthly.",
+      effective_date: "2026-01-01",
+      created_at: "2025-12-15T09:00:00Z",
+    },
+    {
+      id: "pl111111-0000-0000-0000-000000000002",
+      org_id: "org-1",
+      title: "Code of Conduct",
+      category: "Compliance",
+      body: "Employees are expected to act with integrity, respect colleagues, and comply with all applicable laws.",
+      effective_date: null,
+      created_at: "2025-11-01T09:00:00Z",
+    },
+  ],
   "/statutory-liabilities": [
     {
       id: "l1111111-0000-0000-0000-000000000001",

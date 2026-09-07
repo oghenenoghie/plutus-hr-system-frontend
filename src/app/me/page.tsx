@@ -7,7 +7,15 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { KpiTile } from "@/components/ui/kpi-tile";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
-import { benefitsApi, employeesApi, expensesApi, leaveApi, loansApi, payRunsApi } from "@/lib/api/endpoints";
+import {
+  benefitsApi,
+  employeesApi,
+  expensesApi,
+  leaveApi,
+  loansApi,
+  payRunsApi,
+  policiesApi,
+} from "@/lib/api/endpoints";
 import { formatDate, formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 
@@ -19,6 +27,7 @@ export default function MyWorkspacePage() {
   const expenses = useApiResource(() => expensesApi.mine());
   const loans = useApiResource(() => loansApi.mine());
   const benefits = useApiResource(() => benefitsApi.mine());
+  const policies = useApiResource(() => policiesApi.list());
 
   const latestPayslip = payslips.data
     ? [...payslips.data].sort((a, b) => (a.period_end < b.period_end ? 1 : -1))[0]
@@ -197,6 +206,26 @@ export default function MyWorkspacePage() {
                 ))}
               </tbody>
             </Table>
+          ) : null}
+        </Card>
+
+        <Card>
+          <CardHeader title="Company Policies" />
+          {policies.loading ? <LoadingState /> : null}
+          {policies.error ? <ErrorState message={policies.error} /> : null}
+          {policies.data && policies.data.length === 0 ? <EmptyState label="No policies published yet." /> : null}
+          {policies.data && policies.data.length > 0 ? (
+            <ul className="flex flex-col gap-3">
+              {policies.data.map((policy) => (
+                <li key={policy.id}>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-ink">{policy.title}</span>
+                    {policy.category ? <Badge>{policy.category}</Badge> : null}
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[12px] text-ink-soft">{policy.body}</p>
+                </li>
+              ))}
+            </ul>
           ) : null}
         </Card>
       </div>

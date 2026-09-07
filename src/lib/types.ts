@@ -166,6 +166,32 @@ export interface JobGradeUpdateBody {
   max_salary_minor?: number | null;
 }
 
+// --- policies ---
+
+export interface Policy {
+  id: string;
+  org_id: string;
+  title: string;
+  category: string | null;
+  body: string;
+  effective_date: string | null;
+  created_at: string;
+}
+
+export interface PolicyCreateBody {
+  title: string;
+  body: string;
+  category?: string | null;
+  effective_date?: string | null;
+}
+
+export interface PolicyUpdateBody {
+  title?: string;
+  body?: string;
+  category?: string | null;
+  effective_date?: string | null;
+}
+
 // --- payroll ---
 
 export interface PayRunCreateBody {

@@ -24,6 +24,9 @@ import type {
   PayRun,
   PayRunCreateBody,
   Payslip,
+  Policy,
+  PolicyCreateBody,
+  PolicyUpdateBody,
   SimulationOut,
   SimulationRequestBody,
   StatutoryLiability,
@@ -90,6 +93,16 @@ export const jobGradesApi = {
     apiFetch<JobGrade>("/job-grades", { method: "POST", body }),
   update: (id: string, body: JobGradeUpdateBody) =>
     apiFetch<JobGrade>(`/job-grades/${id}`, { method: "PATCH", body }),
+};
+
+// --- policies ---
+
+export const policiesApi = {
+  list: () => apiFetch<Policy[]>("/policies"),
+  get: (id: string) => apiFetch<Policy>(`/policies/${id}`),
+  create: (body: PolicyCreateBody) => apiFetch<Policy>("/policies", { method: "POST", body }),
+  update: (id: string, body: PolicyUpdateBody) =>
+    apiFetch<Policy>(`/policies/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---
