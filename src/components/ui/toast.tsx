@@ -18,7 +18,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   // (rather than `typeof document`) keeps the very first client render
   // identical to the server-rendered HTML, avoiding a hydration mismatch.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const showToast = useCallback((message: string, tone: Toast["tone"] = "neutral") => {
     const id = Date.now() + Math.random();
