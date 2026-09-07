@@ -7,6 +7,7 @@ export interface NavItem {
     | "dashboard"
     | "employees"
     | "departments"
+    | "branches"
     | "payroll"
     | "leave"
     | "expenses"
@@ -26,6 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: "dashboard", roles: ["admin", "payroll_manager"] },
   { href: "/employees", label: "Employees", icon: "employees", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/departments", label: "Departments", icon: "departments", roles: ["admin", "payroll_manager", "manager"] },
+  { href: "/branches", label: "Branches", icon: "branches", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/payroll", label: "Payroll Runs", icon: "payroll", roles: ["admin", "payroll_manager"] },
   { href: "/leave", label: "Leave", icon: "leave", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/expenses", label: "Expenses", icon: "expenses", roles: ["admin", "payroll_manager", "manager"] },
