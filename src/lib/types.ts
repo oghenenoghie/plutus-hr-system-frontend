@@ -1,0 +1,265 @@
+// Mirrors app/schemas/* and app/models/* in the plutus-hr-system (FastAPI) backend.
+// Money fields are minor units (kobo); dates are ISO date strings; datetimes are ISO strings.
+
+export type Role = "admin" | "payroll_manager" | "manager" | "employee";
+
+export type PayFrequency = "monthly" | "weekly" | "biweekly";
+export type EmploymentType =
+  | "permanent"
+  | "fixed_term"
+  | "part_time"
+  | "intern"
+  | "consultant";
+export type LifecycleState = "active" | "suspended" | "terminated";
+export type PayRunStatus = "draft" | "processing" | "completed" | "failed";
+export type LeaveType = "annual" | "sick" | "maternity" | "paternity" | "unpaid";
+export type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
+export type ExpenseStatus = "pending" | "approved" | "rejected" | "reimbursed";
+export type LoanStatus = "active" | "paid_off" | "cancelled";
+export type BenefitFrequency = "one_time" | "monthly" | "annual";
+export type LiabilityScheme = "paye" | "pension" | "nhf" | "nsitf" | "itf" | "wht";
+export type LiabilityStatus = "pending" | "filed" | "remitted";
+
+// --- auth ---
+
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+}
+
+export interface MeResponse {
+  account_id: string;
+  org_id: string;
+  role: Role;
+  org_name: string;
+}
+
+// --- employees ---
+
+export interface Employee {
+  id: string;
+  org_id: string;
+  account_id: string | null;
+  employee_number: string;
+  full_name: string;
+  state_of_residence: string;
+  employment_type: EmploymentType;
+  lifecycle_state: LifecycleState;
+  date_of_joining: string;
+  job_title: string | null;
+  manager_id: string | null;
+  tin: string | null;
+  basic_minor: number;
+  housing_minor: number;
+  transport_minor: number;
+  other_earnings_minor: number;
+  annual_rent_paid_minor: number;
+  pay_frequency: PayFrequency;
+  annual_leave_entitlement_days: number;
+  created_at: string;
+}
+
+// --- payroll ---
+
+export interface PayRun {
+  id: string;
+  org_id: string;
+  period_start: string;
+  period_end: string;
+  frequency: PayFrequency;
+  status: PayRunStatus;
+  rule_version_id: string | null;
+  employee_count: number;
+  gross_minor: number;
+  net_minor: number;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface Payslip {
+  id: string;
+  pay_run_id: string;
+  employee_id: string;
+  period_start: string;
+  period_end: string;
+  gross_minor: number;
+  pensionable_pay_minor: number;
+  pension_employee_minor: number;
+  pension_employer_minor: number;
+  nhf_minor: number;
+  paye_minor: number;
+  net_minor: number;
+  cumulative_chargeable_income_minor: number;
+  rule_version_id: string;
+  derivation: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface Disbursement {
+  csv_content: string;
+  total_minor: number;
+  skipped_employee_numbers: string[];
+}
+
+// --- dashboard ---
+
+export interface OrgSummary {
+  active_employee_count: number;
+  last_completed_pay_run: PayRun | null;
+  outstanding_liability_minor: number;
+  pending_leave_request_count: number;
+  pending_expense_count: number;
+}
+
+// --- leave ---
+
+export interface LeaveRequest {
+  id: string;
+  employee_id: string;
+  leave_type: LeaveType;
+  start_date: string;
+  end_date: string;
+  days: number;
+  status: LeaveStatus;
+  reason: string | null;
+  created_at: string;
+  decided_at: string | null;
+}
+
+export interface LeaveBalance {
+  entitlement_days: number;
+  taken_days: number;
+  remaining_days: number;
+}
+
+// --- expenses ---
+
+export interface Expense {
+  id: string;
+  employee_id: string;
+  category: string;
+  description: string;
+  amount_minor: number;
+  expense_date: string;
+  status: ExpenseStatus;
+  created_at: string;
+  decided_at: string | null;
+  reimbursed_at: string | null;
+}
+
+// --- loans ---
+
+export interface Loan {
+  id: string;
+  employee_id: string;
+  principal_minor: number;
+  num_installments: number;
+  installment_minor: number;
+  start_date: string;
+  status: LoanStatus;
+  outstanding_minor: number;
+  created_at: string;
+}
+
+// --- benefits ---
+
+export interface Benefit {
+  id: string;
+  employee_id: string;
+  name: string;
+  description: string | null;
+  value_minor: number | null;
+  frequency: BenefitFrequency;
+  effective_date: string;
+  end_date: string | null;
+  created_at: string;
+}
+
+// --- contractors ---
+
+export interface Contractor {
+  id: string;
+  org_id: string;
+  name: string;
+  tin: string | null;
+  bank_name: string | null;
+  account_number: string | null;
+  account_name: string | null;
+  created_at: string;
+}
+
+export interface WhtPayment {
+  id: string;
+  contractor_id: string;
+  category: string;
+  gross_amount_minor: number;
+  wht_amount_minor: number;
+  net_amount_minor: number;
+  payment_date: string;
+  due_date: string;
+  certificate_number: string;
+  rule_version_id: string;
+  created_at: string;
+}
+
+// --- statutory liabilities ---
+
+export interface StatutoryLiability {
+  id: string;
+  pay_run_id: string | null;
+  scheme: LiabilityScheme;
+  state: string | null;
+  authority: string;
+  base_minor: number;
+  amount_minor: number;
+  period_start: string;
+  period_end: string;
+  due_date: string;
+  status: LiabilityStatus;
+  filed_at: string | null;
+  remitted_at: string | null;
+  remittance_reference: string | null;
+  created_at: string;
+}
+
+// --- final settlement ---
+
+export interface FinalSettlement {
+  id: string;
+  employee_id: string;
+  payslip_id: string;
+  termination_date: string;
+  leave_days_paid_out: number;
+  leave_payout_minor: number;
+  gratuity_minor: number;
+  outstanding_loan_recovered_minor: number;
+  net_settlement_minor: number;
+  created_at: string;
+}
+
+// --- simulation ---
+
+export interface SimulationRequestBody {
+  period_end: string;
+  basic_minor?: number;
+  housing_minor?: number;
+  transport_minor?: number;
+  other_earnings_minor?: number;
+  annual_rent_paid_minor?: number;
+  frequency?: PayFrequency;
+  include_active_loan_deduction?: boolean;
+}
+
+export interface SimulationOut {
+  gross_minor: number;
+  pensionable_pay_minor: number;
+  pension_employee_minor: number;
+  pension_employer_minor: number;
+  nhf_minor: number;
+  cumulative_rent_relief_minor: number;
+  cumulative_chargeable_income_minor: number;
+  paye_minor: number;
+  loan_deduction_minor: number;
+  net_pay_minor: number;
+}
