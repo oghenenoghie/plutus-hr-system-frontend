@@ -22,6 +22,9 @@ import type {
   CompanyAssetCreateBody,
   CompanyAssetUpdateBody,
   Contractor,
+  Customer,
+  CustomerCreateBody,
+  CustomerUpdateBody,
   Department,
   DepartmentCreateBody,
   DepartmentUpdateBody,
@@ -34,6 +37,8 @@ import type {
   EmployeeCreateBody,
   Expense,
   FinalSettlement,
+  Invoice,
+  InvoiceCreateBody,
   JobGrade,
   JobGradeCreateBody,
   JobGradeUpdateBody,
@@ -337,6 +342,25 @@ export const billsApi = {
   approve: (id: string) => apiFetch<Bill>(`/bills/${id}/approve`, { method: "POST", body: {} }),
   pay: (id: string) => apiFetch<Bill>(`/bills/${id}/pay`, { method: "POST", body: {} }),
   void: (id: string) => apiFetch<Bill>(`/bills/${id}/void`, { method: "POST", body: {} }),
+};
+
+// --- customers ---
+
+export const customersApi = {
+  list: () => apiFetch<Customer[]>("/customers"),
+  create: (body: CustomerCreateBody) => apiFetch<Customer>("/customers", { method: "POST", body }),
+  update: (id: string, body: CustomerUpdateBody) =>
+    apiFetch<Customer>(`/customers/${id}`, { method: "PATCH", body }),
+};
+
+// --- invoices ---
+
+export const invoicesApi = {
+  list: () => apiFetch<Invoice[]>("/invoices"),
+  create: (body: InvoiceCreateBody) => apiFetch<Invoice>("/invoices", { method: "POST", body }),
+  send: (id: string) => apiFetch<Invoice>(`/invoices/${id}/send`, { method: "POST", body: {} }),
+  pay: (id: string) => apiFetch<Invoice>(`/invoices/${id}/pay`, { method: "POST", body: {} }),
+  void: (id: string) => apiFetch<Invoice>(`/invoices/${id}/void`, { method: "POST", body: {} }),
 };
 
 // --- pay runs ---
