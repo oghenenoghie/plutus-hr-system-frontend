@@ -756,3 +756,64 @@ export interface SimulationOut {
   loan_deduction_minor: number;
   net_pay_minor: number;
 }
+
+// --- chart of accounts / general ledger ---
+
+export type AccountType = "asset" | "liability" | "equity" | "revenue" | "expense";
+
+export interface ChartAccount {
+  id: string;
+  org_id: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  is_system: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ChartAccountCreateBody {
+  code: string;
+  name: string;
+  type: AccountType;
+}
+
+export interface ChartAccountUpdateBody {
+  name?: string;
+  is_active?: boolean;
+}
+
+export interface LedgerEntry {
+  id: string;
+  org_id: string;
+  journal_entry_id: string;
+  pay_run_id: string | null;
+  employee_id: string | null;
+  account: string;
+  account_name: string | null;
+  debit_minor: number;
+  credit_minor: number;
+  description: string | null;
+  created_at: string;
+}
+
+export interface TrialBalanceLine {
+  account: string;
+  account_name: string | null;
+  account_type: AccountType | null;
+  total_debit_minor: number;
+  total_credit_minor: number;
+  balance_minor: number;
+}
+
+export interface JournalEntryLineCreateBody {
+  account_code: string;
+  debit_minor?: number;
+  credit_minor?: number;
+  description?: string | null;
+}
+
+export interface JournalEntryCreateBody {
+  description: string;
+  lines: JournalEntryLineCreateBody[];
+}

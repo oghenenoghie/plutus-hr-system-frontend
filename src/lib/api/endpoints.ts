@@ -13,6 +13,9 @@ import type {
   Candidate,
   CandidateCreateBody,
   CandidateUpdateBody,
+  ChartAccount,
+  ChartAccountCreateBody,
+  ChartAccountUpdateBody,
   CompanyAsset,
   CompanyAssetCreateBody,
   CompanyAssetUpdateBody,
@@ -35,8 +38,10 @@ import type {
   JobPosting,
   JobPostingCreateBody,
   JobPostingUpdateBody,
+  JournalEntryCreateBody,
   LeaveBalance,
   LeaveRequest,
+  LedgerEntry,
   Loan,
   MeResponse,
   Notification,
@@ -66,6 +71,7 @@ import type {
   TrainingEnrollment,
   TrainingEnrollmentCreateBody,
   TrainingEnrollmentUpdateBody,
+  TrialBalanceLine,
   UnionMembership,
   UnionMembershipCreateBody,
   UnionMembershipTerminateBody,
@@ -280,6 +286,33 @@ export const apiKeysApi = {
   create: (body: ApiKeyCreateBody) =>
     apiFetch<ApiKeyCreated>("/api-keys", { method: "POST", body }),
   revoke: (id: string) => apiFetch<ApiKey>(`/api-keys/${id}/revoke`, { method: "POST", body: {} }),
+};
+
+// --- chart of accounts ---
+
+export const chartAccountsApi = {
+  list: () => apiFetch<ChartAccount[]>("/chart-of-accounts"),
+  create: (body: ChartAccountCreateBody) =>
+    apiFetch<ChartAccount>("/chart-of-accounts", { method: "POST", body }),
+  update: (id: string, body: ChartAccountUpdateBody) =>
+    apiFetch<ChartAccount>(`/chart-of-accounts/${id}`, { method: "PATCH", body }),
+  seedDefaults: () =>
+    apiFetch<ChartAccount[]>("/chart-of-accounts/seed-defaults", { method: "POST", body: {} }),
+};
+
+// --- general ledger ---
+
+export const generalLedgerApi = {
+  entries: (params?: { account?: string; payRunId?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.account) query.set("account", params.account);
+    if (params?.payRunId) query.set("pay_run_id", params.payRunId);
+    const qs = query.toString();
+    return apiFetch<LedgerEntry[]>(`/general-ledger/entries${qs ? `?${qs}` : ""}`);
+  },
+  trialBalance: () => apiFetch<TrialBalanceLine[]>("/general-ledger/trial-balance"),
+  postJournalEntry: (body: JournalEntryCreateBody) =>
+    apiFetch<LedgerEntry[]>("/general-ledger/journal-entries", { method: "POST", body }),
 };
 
 // --- pay runs ---
