@@ -1,8 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge, StatusBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
@@ -11,11 +14,16 @@ import { formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 
 export default function EmployeesPage() {
+  const router = useRouter();
   const employees = useApiResource(() => employeesApi.list());
 
   return (
     <div>
-      <PageHeader title="Employees" subtitle="Directory, TIN status and pay components" />
+      <PageHeader
+        title="Employees"
+        subtitle="Directory, TIN status and pay components"
+        action={<Button onClick={() => router.push("/employees/new")}>New Employee</Button>}
+      />
 
       <Card>
         {employees.loading ? <LoadingState /> : null}

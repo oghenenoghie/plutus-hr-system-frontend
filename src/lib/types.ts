@@ -60,7 +60,44 @@ export interface Employee {
   created_at: string;
 }
 
+export interface EmployeeCreateBody {
+  employee_number: string;
+  full_name: string;
+  state_of_residence: string;
+  employment_type: EmploymentType;
+  date_of_joining: string;
+  basic_minor: number;
+  housing_minor: number;
+  transport_minor: number;
+  other_earnings_minor?: number;
+  annual_rent_paid_minor?: number;
+  pay_frequency?: PayFrequency;
+  annual_leave_entitlement_days?: number;
+  date_of_birth?: string;
+  gender?: string;
+  nationality?: string;
+  marital_status?: string;
+  email?: string;
+  phone?: string;
+  residential_address?: string;
+  next_of_kin_name?: string;
+  next_of_kin_phone?: string;
+  tin?: string;
+  pfa_name?: string;
+  rsa_pin?: string;
+  nhf_number?: string;
+  job_title?: string;
+  manager_id?: string;
+}
+
 // --- payroll ---
+
+export interface PayRunCreateBody {
+  period_start: string;
+  period_end: string;
+  frequency: PayFrequency;
+  employee_ids?: string[];
+}
 
 export interface PayRun {
   id: string;

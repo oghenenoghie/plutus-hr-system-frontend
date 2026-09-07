@@ -4,6 +4,7 @@ import type {
   Contractor,
   Disbursement,
   Employee,
+  EmployeeCreateBody,
   Expense,
   FinalSettlement,
   LeaveBalance,
@@ -12,6 +13,7 @@ import type {
   MeResponse,
   OrgSummary,
   PayRun,
+  PayRunCreateBody,
   Payslip,
   SimulationOut,
   SimulationRequestBody,
@@ -45,6 +47,8 @@ export const employeesApi = {
   list: () => apiFetch<Employee[]>("/employees"),
   me: () => apiFetch<Employee>("/employees/me"),
   get: (id: string) => apiFetch<Employee>(`/employees/${id}`),
+  create: (body: EmployeeCreateBody) =>
+    apiFetch<Employee>("/employees", { method: "POST", body }),
 };
 
 // --- pay runs ---
@@ -52,6 +56,7 @@ export const employeesApi = {
 export const payRunsApi = {
   list: () => apiFetch<PayRun[]>("/pay-runs"),
   get: (id: string) => apiFetch<PayRun>(`/pay-runs/${id}`),
+  create: (body: PayRunCreateBody) => apiFetch<PayRun>("/pay-runs", { method: "POST", body }),
   payslips: (id: string) => apiFetch<Payslip[]>(`/pay-runs/${id}/payslips`),
   disbursement: (id: string) => apiFetch<Disbursement>(`/pay-runs/${id}/disbursement`),
   myPayslips: () => apiFetch<Payslip[]>("/pay-runs/me/payslips"),

@@ -3,6 +3,12 @@ export function formatNaira(minor: number): string {
   return `₦${Math.round(minor / 100).toLocaleString("en-NG")}`;
 }
 
+// Inverse of formatNaira, for form inputs collecting a whole-naira amount.
+export function nairaToMinor(value: string): number {
+  const parsed = Number(value.replace(/,/g, ""));
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) : 0;
+}
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
   const date = new Date(value);

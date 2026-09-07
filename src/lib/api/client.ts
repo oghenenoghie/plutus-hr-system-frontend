@@ -52,10 +52,14 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   if (MOCK_MODE) {
+    const isRead = !options.method || options.method === "GET";
     const lookupPath = path.split("?")[0]!;
-    if (lookupPath in MOCK_FIXTURES) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    if (isRead && lookupPath in MOCK_FIXTURES) {
       return MOCK_FIXTURES[lookupPath as keyof typeof MOCK_FIXTURES] as T;
+    }
+    if (!isRead) {
+      throw new ApiError(501, "Writes are disabled in mock preview mode.");
     }
   }
 
