@@ -12,6 +12,10 @@ import type {
   DepartmentCreateBody,
   DepartmentUpdateBody,
   Disbursement,
+  DisciplinaryCase,
+  DisciplinaryCaseCreateBody,
+  DisciplinaryCaseResolveBody,
+  DisciplinaryCaseUpdateBody,
   Employee,
   EmployeeCreateBody,
   Expense,
@@ -26,6 +30,9 @@ import type {
   LeaveRequest,
   Loan,
   MeResponse,
+  Notification,
+  NotificationBroadcastBody,
+  NotificationUnreadCount,
   OrgSummary,
   PayRun,
   PayRunCreateBody,
@@ -50,6 +57,10 @@ import type {
   TrainingEnrollment,
   TrainingEnrollmentCreateBody,
   TrainingEnrollmentUpdateBody,
+  UnionMembership,
+  UnionMembershipCreateBody,
+  UnionMembershipTerminateBody,
+  UnionMembershipUpdateBody,
   WhtPayment,
 } from "@/lib/types";
 
@@ -189,6 +200,48 @@ export const trainingEnrollmentsApi = {
   mine: () => apiFetch<TrainingEnrollment[]>("/training-enrollments/me"),
   update: (id: string, body: TrainingEnrollmentUpdateBody) =>
     apiFetch<TrainingEnrollment>(`/training-enrollments/${id}`, { method: "PATCH", body }),
+};
+
+// --- employee relations ---
+
+export const disciplinaryCasesApi = {
+  list: () => apiFetch<DisciplinaryCase[]>("/disciplinary-cases"),
+  get: (id: string) => apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}`),
+  create: (body: DisciplinaryCaseCreateBody) =>
+    apiFetch<DisciplinaryCase>("/disciplinary-cases", { method: "POST", body }),
+  update: (id: string, body: DisciplinaryCaseUpdateBody) =>
+    apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}`, { method: "PATCH", body }),
+  resolve: (id: string, body: DisciplinaryCaseResolveBody) =>
+    apiFetch<DisciplinaryCase>(`/disciplinary-cases/${id}/resolve`, { method: "POST", body }),
+};
+
+// --- notifications ---
+
+export const notificationsApi = {
+  mine: () => apiFetch<Notification[]>("/notifications/me"),
+  unreadCount: () => apiFetch<NotificationUnreadCount>("/notifications/me/unread-count"),
+  markRead: (id: string) =>
+    apiFetch<Notification>(`/notifications/me/${id}/read`, { method: "POST", body: {} }),
+  markAllRead: () => apiFetch<void>("/notifications/me/read-all", { method: "POST", body: {} }),
+  broadcast: (body: NotificationBroadcastBody) =>
+    apiFetch<Notification[]>("/notifications/broadcast", { method: "POST", body }),
+};
+
+// --- union dues ---
+
+export const unionMembershipsApi = {
+  forEmployee: (employeeId: string) =>
+    apiFetch<UnionMembership[]>(`/union-memberships/employees/${employeeId}`),
+  mine: () => apiFetch<UnionMembership[]>("/union-memberships/me"),
+  assign: (employeeId: string, body: UnionMembershipCreateBody) =>
+    apiFetch<UnionMembership>(`/union-memberships/employees/${employeeId}`, {
+      method: "POST",
+      body,
+    }),
+  update: (id: string, body: UnionMembershipUpdateBody) =>
+    apiFetch<UnionMembership>(`/union-memberships/${id}`, { method: "PATCH", body }),
+  terminate: (id: string, body: UnionMembershipTerminateBody) =>
+    apiFetch<UnionMembership>(`/union-memberships/${id}/terminate`, { method: "POST", body }),
 };
 
 // --- pay runs ---

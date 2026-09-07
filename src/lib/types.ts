@@ -339,6 +339,114 @@ export interface TrainingEnrollmentUpdateBody {
   score?: number | null;
 }
 
+// --- employee relations ---
+
+export type DisciplinaryCaseCategory =
+  | "misconduct"
+  | "attendance"
+  | "policy_violation"
+  | "harassment"
+  | "other";
+export type DisciplinaryCaseStatus = "open" | "under_review" | "resolved" | "dismissed";
+export type DisciplinaryCaseAction =
+  | "none"
+  | "verbal_warning"
+  | "written_warning"
+  | "suspension"
+  | "termination";
+
+export interface DisciplinaryCase {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  reported_by_id: string | null;
+  category: DisciplinaryCaseCategory;
+  description: string;
+  status: DisciplinaryCaseStatus;
+  incident_date: string;
+  action_taken: DisciplinaryCaseAction | null;
+  resolution_notes: string | null;
+  resolution_date: string | null;
+  created_at: string;
+}
+
+export interface DisciplinaryCaseCreateBody {
+  employee_id: string;
+  reported_by_id?: string | null;
+  category: DisciplinaryCaseCategory;
+  description: string;
+  incident_date: string;
+}
+
+export interface DisciplinaryCaseUpdateBody {
+  category?: DisciplinaryCaseCategory;
+  description?: string;
+  status?: DisciplinaryCaseStatus;
+}
+
+export interface DisciplinaryCaseResolveBody {
+  action_taken: DisciplinaryCaseAction;
+  resolution_notes?: string | null;
+}
+
+// --- notifications ---
+
+export interface Notification {
+  id: string;
+  org_id: string;
+  account_id: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationBroadcastBody {
+  title: string;
+  body?: string | null;
+  link?: string | null;
+}
+
+export interface NotificationUnreadCount {
+  unread_count: number;
+}
+
+// --- union dues ---
+
+export type UnionMembershipStatus = "active" | "suspended" | "terminated";
+
+export interface UnionMembership {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  union_name: string;
+  membership_number: string | null;
+  monthly_dues_minor: number;
+  status: UnionMembershipStatus;
+  joined_date: string;
+  terminated_date: string | null;
+  created_at: string;
+}
+
+export interface UnionMembershipCreateBody {
+  union_name: string;
+  monthly_dues_minor: number;
+  joined_date: string;
+  membership_number?: string | null;
+}
+
+export interface UnionMembershipUpdateBody {
+  union_name?: string;
+  membership_number?: string | null;
+  monthly_dues_minor?: number;
+  status?: UnionMembershipStatus;
+}
+
+export interface UnionMembershipTerminateBody {
+  terminated_date: string;
+}
+
 // --- policies ---
 
 export interface Policy {

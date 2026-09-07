@@ -1,22 +1,34 @@
 "use client";
 
+import { useState } from "react";
+
 import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
+import { Drawer } from "@/components/ui/drawer";
+import { Input, Label, Textarea } from "@/components/ui/input";
 import { KpiTile } from "@/components/ui/kpi-tile";
 import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
-import { dashboardApi } from "@/lib/api/endpoints";
+import { useToast } from "@/components/ui/toast";
+import { ApiError } from "@/lib/api/client";
+import { dashboardApi, notificationsApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 
 export default function DashboardPage() {
   const summary = useApiResource(() => dashboardApi.summary());
   const deadlines = useApiResource(() => dashboardApi.deadlines(30));
+  const [broadcasting, setBroadcasting] = useState(false);
 
   return (
     <div>
-      <PageHeader title="Overview" subtitle="Workforce, payroll and compliance at a glance" />
+      <PageHeader
+        title="Overview"
+        subtitle="Workforce, payroll and compliance at a glance"
+        action={<Button onClick={() => setBroadcasting(true)}>Send Announcement</Button>}
+      />
 
       {summary.loading ? <LoadingState /> : null}
       {summary.error ? <ErrorState message={summary.error} /> : null}
@@ -98,6 +110,62 @@ export default function DashboardPage() {
           </Table>
         ) : null}
       </Card>
+
+      {broadcasting ? <BroadcastDrawer onClose={() => setBroadcasting(false)} /> : null}
     </div>
+  );
+}
+
+function BroadcastDrawer({ onClose }: { onClose: () => void }) {
+  const { showToast } = useToast();
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      const recipients = await notificationsApi.broadcast({ title, body: body || null });
+      showToast(`Announcement sent to ${recipients.length} account(s)`, "good");
+      onClose();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Drawer title="Send Announcement" onClose={onClose}>
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
+        <div>
+          <Label htmlFor="announcement-title">Title</Label>
+          <Input
+            id="announcement-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="e.g. Payroll cutoff moved"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="announcement-body">Message</Label>
+          <Textarea
+            id="announcement-body"
+            value={body}
+            onChange={(event) => setBody(event.target.value)}
+            placeholder="Optional"
+          />
+        </div>
+        <div className="mt-auto flex justify-end gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Sending…" : "Send to Everyone"}
+          </Button>
+        </div>
+      </form>
+    </Drawer>
   );
 }
