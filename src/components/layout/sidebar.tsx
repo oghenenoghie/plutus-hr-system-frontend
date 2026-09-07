@@ -14,6 +14,7 @@ import {
   HandCoins,
   LayoutDashboard,
   MapPin,
+  Network,
   ReceiptText,
   ShieldCheck,
   UserSquare2,
@@ -26,6 +27,7 @@ import type { Role } from "@/lib/types";
 const ICONS: Record<NavItem["icon"], typeof LayoutDashboard> = {
   dashboard: LayoutDashboard,
   employees: Users,
+  orgChart: Network,
   departments: Building2,
   branches: MapPin,
   jobGrades: BarChart3,

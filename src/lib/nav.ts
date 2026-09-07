@@ -6,6 +6,7 @@ export interface NavItem {
   icon:
     | "dashboard"
     | "employees"
+    | "orgChart"
     | "departments"
     | "branches"
     | "jobGrades"
@@ -29,6 +30,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: "dashboard", roles: ["admin", "payroll_manager"] },
   { href: "/employees", label: "Employees", icon: "employees", roles: ["admin", "payroll_manager", "manager"] },
+  { href: "/org-chart", label: "Org Chart", icon: "orgChart", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/departments", label: "Departments", icon: "departments", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/branches", label: "Branches", icon: "branches", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/job-grades", label: "Job Grades", icon: "jobGrades", roles: ["admin", "payroll_manager", "manager"] },
