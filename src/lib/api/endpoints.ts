@@ -1,6 +1,9 @@
 import { apiFetch } from "@/lib/api/client";
 import type {
   Benefit,
+  Branch,
+  BranchCreateBody,
+  BranchUpdateBody,
   Contractor,
   Department,
   DepartmentCreateBody,
@@ -63,6 +66,16 @@ export const departmentsApi = {
     apiFetch<Department>("/departments", { method: "POST", body }),
   update: (id: string, body: DepartmentUpdateBody) =>
     apiFetch<Department>(`/departments/${id}`, { method: "PATCH", body }),
+};
+
+// --- branches ---
+
+export const branchesApi = {
+  list: () => apiFetch<Branch[]>("/branches"),
+  get: (id: string) => apiFetch<Branch>(`/branches/${id}`),
+  create: (body: BranchCreateBody) => apiFetch<Branch>("/branches", { method: "POST", body }),
+  update: (id: string, body: BranchUpdateBody) =>
+    apiFetch<Branch>(`/branches/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---

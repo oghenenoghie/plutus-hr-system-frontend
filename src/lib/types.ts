@@ -112,6 +112,32 @@ export interface DepartmentUpdateBody {
   manager_id?: string | null;
 }
 
+// --- branches ---
+
+export interface Branch {
+  id: string;
+  org_id: string;
+  name: string;
+  state: string | null;
+  address: string | null;
+  manager_id: string | null;
+  created_at: string;
+}
+
+export interface BranchCreateBody {
+  name: string;
+  state?: string | null;
+  address?: string | null;
+  manager_id?: string | null;
+}
+
+export interface BranchUpdateBody {
+  name?: string;
+  state?: string | null;
+  address?: string | null;
+  manager_id?: string | null;
+}
+
 // --- payroll ---
 
 export interface PayRunCreateBody {

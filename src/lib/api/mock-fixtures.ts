@@ -299,6 +299,26 @@ export const MOCK_FIXTURES = {
       created_at: "2025-01-10T09:00:00Z",
     },
   ],
+  "/branches": [
+    {
+      id: "b1111111-0000-0000-0000-000000000001",
+      org_id: "org-1",
+      name: "Lagos HQ",
+      state: "Lagos",
+      address: "1 Marina Road, Lagos Island",
+      manager_id: employees[0]!.id,
+      created_at: "2023-03-01T09:00:00Z",
+    },
+    {
+      id: "b1111111-0000-0000-0000-000000000002",
+      org_id: "org-1",
+      name: "Abuja Branch",
+      state: "FCT",
+      address: null,
+      manager_id: null,
+      created_at: "2024-06-15T09:00:00Z",
+    },
+  ],
   "/statutory-liabilities": [
     {
       id: "l1111111-0000-0000-0000-000000000001",
