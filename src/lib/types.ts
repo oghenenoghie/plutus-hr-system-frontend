@@ -925,3 +925,31 @@ export interface InvoiceCreateBody {
   amount_minor: number;
   description?: string | null;
 }
+
+// --- financial statements ---
+
+export interface StatementLine {
+  account: string;
+  account_name: string;
+  balance_minor: number;
+}
+
+export interface BalanceSheet {
+  as_of: string | null;
+  assets: StatementLine[];
+  total_assets_minor: number;
+  liabilities: StatementLine[];
+  total_liabilities_minor: number;
+  equity: StatementLine[];
+  total_equity_minor: number;
+}
+
+export interface IncomeStatement {
+  from_date: string | null;
+  to_date: string | null;
+  revenue: StatementLine[];
+  total_revenue_minor: number;
+  expenses: StatementLine[];
+  total_expenses_minor: number;
+  net_income_minor: number;
+}

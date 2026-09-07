@@ -22,6 +22,7 @@ export interface NavItem {
     | "generalLedger"
     | "bills"
     | "invoices"
+    | "financialStatements"
     | "payroll"
     | "leave"
     | "expenses"
@@ -70,6 +71,12 @@ export const NAV_ITEMS: NavItem[] = [
   },
   { href: "/bills", label: "Bills", icon: "bills", roles: ["admin", "payroll_manager"] },
   { href: "/invoices", label: "Invoices", icon: "invoices", roles: ["admin", "payroll_manager"] },
+  {
+    href: "/financial-statements",
+    label: "Financial Statements",
+    icon: "financialStatements",
+    roles: ["admin", "payroll_manager"],
+  },
 ];
 
 export function navForRole(role: Role): NavItem[] {

@@ -6,6 +6,7 @@ import type {
   AssetAssignment,
   AssetAssignmentCreateBody,
   AssetAssignmentReturnBody,
+  BalanceSheet,
   Benefit,
   Bill,
   BillCreateBody,
@@ -37,6 +38,7 @@ import type {
   EmployeeCreateBody,
   Expense,
   FinalSettlement,
+  IncomeStatement,
   Invoice,
   InvoiceCreateBody,
   JobGrade,
@@ -361,6 +363,22 @@ export const invoicesApi = {
   send: (id: string) => apiFetch<Invoice>(`/invoices/${id}/send`, { method: "POST", body: {} }),
   pay: (id: string) => apiFetch<Invoice>(`/invoices/${id}/pay`, { method: "POST", body: {} }),
   void: (id: string) => apiFetch<Invoice>(`/invoices/${id}/void`, { method: "POST", body: {} }),
+};
+
+// --- financial statements ---
+
+export const financialStatementsApi = {
+  balanceSheet: (asOf?: string) => {
+    const qs = asOf ? `?as_of=${asOf}` : "";
+    return apiFetch<BalanceSheet>(`/financial-statements/balance-sheet${qs}`);
+  },
+  incomeStatement: (params?: { fromDate?: string; toDate?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.fromDate) query.set("from_date", params.fromDate);
+    if (params?.toDate) query.set("to_date", params.toDate);
+    const qs = query.toString();
+    return apiFetch<IncomeStatement>(`/financial-statements/income-statement${qs ? `?${qs}` : ""}`);
+  },
 };
 
 // --- pay runs ---
