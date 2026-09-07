@@ -17,6 +17,7 @@ import {
   Network,
   ReceiptText,
   ShieldCheck,
+  UserPlus,
   UserSquare2,
   Users,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const ICONS: Record<NavItem["icon"], typeof LayoutDashboard> = {
   jobGrades: BarChart3,
   policies: BookText,
   shifts: Clock,
+  recruitment: UserPlus,
   payroll: Banknote,
   leave: ClipboardList,
   expenses: ReceiptText,

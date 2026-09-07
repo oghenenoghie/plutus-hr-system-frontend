@@ -4,6 +4,9 @@ import type {
   Branch,
   BranchCreateBody,
   BranchUpdateBody,
+  Candidate,
+  CandidateCreateBody,
+  CandidateUpdateBody,
   Contractor,
   Department,
   DepartmentCreateBody,
@@ -16,6 +19,9 @@ import type {
   JobGrade,
   JobGradeCreateBody,
   JobGradeUpdateBody,
+  JobPosting,
+  JobPostingCreateBody,
+  JobPostingUpdateBody,
   LeaveBalance,
   LeaveRequest,
   Loan,
@@ -116,6 +122,26 @@ export const shiftsApi = {
   create: (body: ShiftCreateBody) => apiFetch<Shift>("/shifts", { method: "POST", body }),
   update: (id: string, body: ShiftUpdateBody) =>
     apiFetch<Shift>(`/shifts/${id}`, { method: "PATCH", body }),
+};
+
+// --- recruitment ---
+
+export const jobPostingsApi = {
+  list: () => apiFetch<JobPosting[]>("/job-postings"),
+  get: (id: string) => apiFetch<JobPosting>(`/job-postings/${id}`),
+  create: (body: JobPostingCreateBody) =>
+    apiFetch<JobPosting>("/job-postings", { method: "POST", body }),
+  update: (id: string, body: JobPostingUpdateBody) =>
+    apiFetch<JobPosting>(`/job-postings/${id}`, { method: "PATCH", body }),
+  candidates: (id: string) => apiFetch<Candidate[]>(`/job-postings/${id}/candidates`),
+  addCandidate: (id: string, body: CandidateCreateBody) =>
+    apiFetch<Candidate>(`/job-postings/${id}/candidates`, { method: "POST", body }),
+};
+
+export const candidatesApi = {
+  get: (id: string) => apiFetch<Candidate>(`/candidates/${id}`),
+  update: (id: string, body: CandidateUpdateBody) =>
+    apiFetch<Candidate>(`/candidates/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---

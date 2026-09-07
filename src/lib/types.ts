@@ -192,6 +192,64 @@ export interface ShiftUpdateBody {
   end_time?: string;
 }
 
+// --- recruitment ---
+
+export type JobPostingStatus = "open" | "closed";
+export type CandidateStatus = "applied" | "interviewing" | "offered" | "hired" | "rejected";
+
+export interface JobPosting {
+  id: string;
+  org_id: string;
+  department_id: string | null;
+  title: string;
+  description: string | null;
+  status: JobPostingStatus;
+  opened_date: string;
+  closed_date: string | null;
+  created_at: string;
+}
+
+export interface JobPostingCreateBody {
+  title: string;
+  department_id?: string | null;
+  description?: string | null;
+  opened_date: string;
+}
+
+export interface JobPostingUpdateBody {
+  title?: string;
+  department_id?: string | null;
+  description?: string | null;
+  status?: JobPostingStatus;
+  closed_date?: string | null;
+}
+
+export interface Candidate {
+  id: string;
+  org_id: string;
+  job_posting_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  status: CandidateStatus;
+  applied_date: string;
+  created_at: string;
+}
+
+export interface CandidateCreateBody {
+  full_name: string;
+  email?: string | null;
+  phone?: string | null;
+  applied_date: string;
+}
+
+export interface CandidateUpdateBody {
+  full_name?: string;
+  email?: string | null;
+  phone?: string | null;
+  status?: CandidateStatus;
+}
+
 // --- policies ---
 
 export interface Policy {
