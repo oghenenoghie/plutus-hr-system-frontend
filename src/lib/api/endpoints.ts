@@ -2,6 +2,9 @@ import { apiFetch } from "@/lib/api/client";
 import type {
   Benefit,
   Contractor,
+  Department,
+  DepartmentCreateBody,
+  DepartmentUpdateBody,
   Disbursement,
   Employee,
   EmployeeCreateBody,
@@ -49,6 +52,17 @@ export const employeesApi = {
   get: (id: string) => apiFetch<Employee>(`/employees/${id}`),
   create: (body: EmployeeCreateBody) =>
     apiFetch<Employee>("/employees", { method: "POST", body }),
+};
+
+// --- departments ---
+
+export const departmentsApi = {
+  list: () => apiFetch<Department[]>("/departments"),
+  get: (id: string) => apiFetch<Department>(`/departments/${id}`),
+  create: (body: DepartmentCreateBody) =>
+    apiFetch<Department>("/departments", { method: "POST", body }),
+  update: (id: string, body: DepartmentUpdateBody) =>
+    apiFetch<Department>(`/departments/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---

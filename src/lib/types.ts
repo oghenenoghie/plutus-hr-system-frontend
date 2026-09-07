@@ -49,6 +49,7 @@ export interface Employee {
   date_of_joining: string;
   job_title: string | null;
   manager_id: string | null;
+  department_id: string | null;
   tin: string | null;
   basic_minor: number;
   housing_minor: number;
@@ -88,6 +89,27 @@ export interface EmployeeCreateBody {
   nhf_number?: string;
   job_title?: string;
   manager_id?: string;
+  department_id?: string;
+}
+
+// --- departments ---
+
+export interface Department {
+  id: string;
+  org_id: string;
+  name: string;
+  manager_id: string | null;
+  created_at: string;
+}
+
+export interface DepartmentCreateBody {
+  name: string;
+  manager_id?: string | null;
+}
+
+export interface DepartmentUpdateBody {
+  name?: string;
+  manager_id?: string | null;
 }
 
 // --- payroll ---
