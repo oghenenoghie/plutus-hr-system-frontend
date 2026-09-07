@@ -27,6 +27,9 @@ import type {
   Policy,
   PolicyCreateBody,
   PolicyUpdateBody,
+  Shift,
+  ShiftCreateBody,
+  ShiftUpdateBody,
   SimulationOut,
   SimulationRequestBody,
   StatutoryLiability,
@@ -103,6 +106,16 @@ export const policiesApi = {
   create: (body: PolicyCreateBody) => apiFetch<Policy>("/policies", { method: "POST", body }),
   update: (id: string, body: PolicyUpdateBody) =>
     apiFetch<Policy>(`/policies/${id}`, { method: "PATCH", body }),
+};
+
+// --- shifts ---
+
+export const shiftsApi = {
+  list: () => apiFetch<Shift[]>("/shifts"),
+  get: (id: string) => apiFetch<Shift>(`/shifts/${id}`),
+  create: (body: ShiftCreateBody) => apiFetch<Shift>("/shifts", { method: "POST", body }),
+  update: (id: string, body: ShiftUpdateBody) =>
+    apiFetch<Shift>(`/shifts/${id}`, { method: "PATCH", body }),
 };
 
 // --- pay runs ---

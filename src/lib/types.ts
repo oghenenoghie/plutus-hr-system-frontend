@@ -51,6 +51,7 @@ export interface Employee {
   manager_id: string | null;
   department_id: string | null;
   job_grade_id: string | null;
+  shift_id: string | null;
   tin: string | null;
   basic_minor: number;
   housing_minor: number;
@@ -92,6 +93,7 @@ export interface EmployeeCreateBody {
   manager_id?: string;
   department_id?: string;
   job_grade_id?: string;
+  shift_id?: string;
 }
 
 // --- departments ---
@@ -164,6 +166,30 @@ export interface JobGradeUpdateBody {
   level?: number | null;
   min_salary_minor?: number | null;
   max_salary_minor?: number | null;
+}
+
+// --- shifts ---
+// start_time/end_time are "HH:MM:SS" wall-clock strings, no date component.
+
+export interface Shift {
+  id: string;
+  org_id: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+}
+
+export interface ShiftCreateBody {
+  name: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface ShiftUpdateBody {
+  name?: string;
+  start_time?: string;
+  end_time?: string;
 }
 
 // --- policies ---

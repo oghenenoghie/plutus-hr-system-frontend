@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
-import { departmentsApi, employeesApi, jobGradesApi } from "@/lib/api/endpoints";
+import { departmentsApi, employeesApi, jobGradesApi, shiftsApi } from "@/lib/api/endpoints";
 import { formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 
@@ -20,6 +20,8 @@ export default function EmployeesPage() {
   const departmentsById = new Map((departments.data ?? []).map((department) => [department.id, department]));
   const jobGrades = useApiResource(() => jobGradesApi.list());
   const jobGradesById = new Map((jobGrades.data ?? []).map((jobGrade) => [jobGrade.id, jobGrade]));
+  const shifts = useApiResource(() => shiftsApi.list());
+  const shiftsById = new Map((shifts.data ?? []).map((shift) => [shift.id, shift]));
 
   return (
     <div>
@@ -42,6 +44,7 @@ export default function EmployeesPage() {
                 <Th>Employee</Th>
                 <Th>Department</Th>
                 <Th>Job Grade</Th>
+                <Th>Shift</Th>
                 <Th>State</Th>
                 <Th>Type</Th>
                 <Th>TIN</Th>
@@ -76,6 +79,9 @@ export default function EmployeesPage() {
                       {employee.job_grade_id
                         ? (jobGradesById.get(employee.job_grade_id)?.name ?? "—")
                         : "—"}
+                    </Td>
+                    <Td>
+                      {employee.shift_id ? (shiftsById.get(employee.shift_id)?.name ?? "—") : "—"}
                     </Td>
                     <Td>{employee.state_of_residence}</Td>
                     <Td>{titleCase(employee.employment_type)}</Td>
