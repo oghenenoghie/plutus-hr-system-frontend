@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 
 import { AuthProvider } from "@/lib/auth/auth-context";
+import { ToastProvider } from "@/components/ui/toast";
 
 import "./globals.css";
 
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={manrope.variable}>
       <body className="font-sans antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <ToastProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );
