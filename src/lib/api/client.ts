@@ -1,7 +1,9 @@
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from "@/lib/auth/token-store";
+import { MOCK_FIXTURES } from "@/lib/api/mock-fixtures";
 import type { TokenResponse } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE === "1";
 
 export class ApiError extends Error {
   status: number;
@@ -49,6 +51,14 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  if (MOCK_MODE) {
+    const lookupPath = path.split("?")[0]!;
+    if (lookupPath in MOCK_FIXTURES) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return MOCK_FIXTURES[lookupPath as keyof typeof MOCK_FIXTURES] as T;
+    }
+  }
+
   const { body, auth = true, _retried, headers, ...rest } = options;
 
   const requestHeaders = new Headers(headers);
