@@ -119,6 +119,163 @@ const payRun = {
   completed_at: "2026-08-29T14:32:00Z",
 };
 
+// One payslip per employees[], sized so the four gross_minor figures sum to
+// payRun.gross_minor exactly (1_565_000_00) and the four net_minor figures
+// sum to payRun.net_minor (1_198_400_00) — the same August 2026 run this
+// fixture set's General Ledger/trial-balance/budget entries already model,
+// so a viewer clicking from the dashboard into this run's payslips sees
+// numbers that tie out everywhere else in the demo.
+function payslip(params: {
+  id: string;
+  employeeId: string;
+  basicMinor: number;
+  housingMinor: number;
+  transportMinor: number;
+  otherEarningsMinor: number;
+  annualRentPaidMinor: number;
+  pensionEmployeeMinor: number;
+  pensionEmployerMinor: number;
+  nhfMinor: number;
+  rentReliefMinor: number;
+  payeMinor: number;
+  loanDeductionMinor: number;
+}) {
+  const grossMinor =
+    params.basicMinor + params.housingMinor + params.transportMinor + params.otherEarningsMinor;
+  const netMinor =
+    grossMinor -
+    params.pensionEmployeeMinor -
+    params.nhfMinor -
+    params.payeMinor -
+    params.loanDeductionMinor;
+  const chargeableIncomeMinor =
+    grossMinor - params.pensionEmployeeMinor - params.nhfMinor - params.rentReliefMinor;
+  return {
+    id: params.id,
+    pay_run_id: payRun.id,
+    employee_id: params.employeeId,
+    period_start: payRun.period_start,
+    period_end: payRun.period_end,
+    gross_minor: grossMinor,
+    pensionable_pay_minor: grossMinor,
+    pension_employee_minor: params.pensionEmployeeMinor,
+    pension_employer_minor: params.pensionEmployerMinor,
+    nhf_minor: params.nhfMinor,
+    paye_minor: params.payeMinor,
+    net_minor: netMinor,
+    cumulative_chargeable_income_minor: chargeableIncomeMinor,
+    rule_version_id: payRun.rule_version_id,
+    derivation: {
+      inputs: {
+        basic_minor: params.basicMinor,
+        housing_minor: params.housingMinor,
+        transport_minor: params.transportMinor,
+        other_earnings_minor: params.otherEarningsMinor,
+        annual_rent_paid_minor: params.annualRentPaidMinor,
+        frequency: payRun.frequency,
+        loan_deduction_minor: params.loanDeductionMinor,
+      },
+      outputs: {
+        gross_minor: grossMinor,
+        pensionable_pay_minor: grossMinor,
+        pension_employee_minor: params.pensionEmployeeMinor,
+        pension_employer_minor: params.pensionEmployerMinor,
+        nhf_minor: params.nhfMinor,
+        cumulative_rent_relief_minor: params.rentReliefMinor,
+        cumulative_chargeable_income_minor: chargeableIncomeMinor,
+        paye_minor: params.payeMinor,
+        loan_deduction_minor: params.loanDeductionMinor,
+        net_pay_minor: netMinor,
+      },
+    },
+    created_at: payRun.completed_at,
+  };
+}
+
+const payslips = [
+  payslip({
+    id: "pk111111-0000-0000-0000-000000000001",
+    employeeId: employees[0]!.id,
+    basicMinor: 300_000_00,
+    housingMinor: 150_000_00,
+    transportMinor: 50_000_00,
+    otherEarningsMinor: 35_000_00,
+    annualRentPaidMinor: 1_200_000_00,
+    pensionEmployeeMinor: 42_800_00,
+    pensionEmployerMinor: 53_500_00,
+    nhfMinor: 7_500_00,
+    rentReliefMinor: 20_000_00,
+    payeMinor: 86_650_00,
+    loanDeductionMinor: 0,
+  }),
+  payslip({
+    id: "pk111111-0000-0000-0000-000000000002",
+    employeeId: employees[1]!.id,
+    basicMinor: 250_000_00,
+    housingMinor: 100_000_00,
+    transportMinor: 40_000_00,
+    otherEarningsMinor: 0,
+    annualRentPaidMinor: 900_000_00,
+    pensionEmployeeMinor: 31_200_00,
+    pensionEmployerMinor: 39_000_00,
+    nhfMinor: 6_250_00,
+    rentReliefMinor: 15_000_00,
+    payeMinor: 35_000_00,
+    loanDeductionMinor: 0,
+  }),
+  payslip({
+    id: "pk111111-0000-0000-0000-000000000003",
+    employeeId: employees[2]!.id,
+    basicMinor: 220_000_00,
+    housingMinor: 90_000_00,
+    transportMinor: 35_000_00,
+    otherEarningsMinor: 15_000_00,
+    annualRentPaidMinor: 700_000_00,
+    pensionEmployeeMinor: 28_800_00,
+    pensionEmployerMinor: 36_000_00,
+    nhfMinor: 5_500_00,
+    rentReliefMinor: 11_650_00,
+    payeMinor: 28_000_00,
+    loanDeductionMinor: 0,
+  }),
+  payslip({
+    id: "pk111111-0000-0000-0000-000000000004",
+    employeeId: employees[3]!.id,
+    basicMinor: 180_000_00,
+    housingMinor: 70_000_00,
+    transportMinor: 30_000_00,
+    otherEarningsMinor: 0,
+    annualRentPaidMinor: 500_000_00,
+    pensionEmployeeMinor: 22_400_00,
+    pensionEmployerMinor: 28_000_00,
+    nhfMinor: 4_500_00,
+    rentReliefMinor: 8_300_00,
+    payeMinor: 18_000_00,
+    loanDeductionMinor: 50_000_00,
+  }),
+];
+
+const PAYSLIP_RECIPIENT_BY_EMPLOYEE_ID: Record<string, string> = {
+  [employees[0]!.id]: "chidinma.okafor@example.com",
+  [employees[1]!.id]: "tunde.bakare@example.com",
+  [employees[2]!.id]: "amaka.eze@example.com",
+  [employees[3]!.id]: "ibrahim.musa@example.com",
+};
+
+function deliveriesFor(slip: (typeof payslips)[number]) {
+  return [
+    {
+      id: `pd${slip.id.slice(2)}`,
+      payslip_id: slip.id,
+      status: "sent",
+      recipient_email: PAYSLIP_RECIPIENT_BY_EMPLOYEE_ID[slip.employee_id],
+      provider_message_id: `resend-${slip.id.slice(-6)}`,
+      error: null,
+      created_at: payRun.completed_at,
+    },
+  ];
+}
+
 export const MOCK_FIXTURES = {
   "/auth/me": {
     account_id: "acc-1",
@@ -191,6 +348,16 @@ export const MOCK_FIXTURES = {
   ],
   "/employees": employees,
   "/employees/me": employees[0],
+  "/pay-runs/p1111111-0000-0000-0000-000000000001": payRun,
+  "/pay-runs/p1111111-0000-0000-0000-000000000001/payslips": payslips,
+  "/pay-runs/p1111111-0000-0000-0000-000000000001/payslips/pk111111-0000-0000-0000-000000000001/deliveries":
+    deliveriesFor(payslips[0]!),
+  "/pay-runs/p1111111-0000-0000-0000-000000000001/payslips/pk111111-0000-0000-0000-000000000002/deliveries":
+    deliveriesFor(payslips[1]!),
+  "/pay-runs/p1111111-0000-0000-0000-000000000001/payslips/pk111111-0000-0000-0000-000000000003/deliveries":
+    deliveriesFor(payslips[2]!),
+  "/pay-runs/p1111111-0000-0000-0000-000000000001/payslips/pk111111-0000-0000-0000-000000000004/deliveries":
+    deliveriesFor(payslips[3]!),
   "/pay-runs": [
     payRun,
     {
@@ -275,6 +442,33 @@ export const MOCK_FIXTURES = {
       created_at: "2026-03-28T09:00:00Z",
     },
   ],
+  "/benefits/employees/e1111111-0000-0000-0000-000000000001": [
+    {
+      id: "bn111111-0000-0000-0000-000000000001",
+      employee_id: "e1111111-0000-0000-0000-000000000001",
+      name: "Health Insurance",
+      description: "HMO cover — employee plus one dependent.",
+      value_minor: 25_000_00,
+      frequency: "monthly",
+      effective_date: "2023-03-01",
+      end_date: null,
+      created_at: "2023-03-01T09:00:00Z",
+    },
+  ],
+  "/final-settlements/e1111111-0000-0000-0000-000000000004": [
+    {
+      id: "fs111111-0000-0000-0000-000000000001",
+      employee_id: "e1111111-0000-0000-0000-000000000004",
+      payslip_id: "pk111111-0000-0000-0000-000000000004",
+      termination_date: "2026-08-31",
+      leave_days_paid_out: 6,
+      leave_payout_minor: 60_000_00,
+      gratuity_minor: 300_000_00,
+      outstanding_loan_recovered_minor: 50_000_00,
+      net_settlement_minor: 310_000_00,
+      created_at: "2026-08-31T09:00:00Z",
+    },
+  ],
   "/contractors": [
     {
       id: "c1111111-0000-0000-0000-000000000001",
@@ -285,6 +479,21 @@ export const MOCK_FIXTURES = {
       account_number: "0123456789",
       account_name: "Delta Logistics Ltd",
       created_at: "2025-11-01T09:00:00Z",
+    },
+  ],
+  "/contractors/c1111111-0000-0000-0000-000000000001/payments": [
+    {
+      id: "wp111111-0000-0000-0000-000000000001",
+      contractor_id: "c1111111-0000-0000-0000-000000000001",
+      category: "services",
+      gross_amount_minor: 1_200_000_00,
+      wht_amount_minor: 120_000_00,
+      net_amount_minor: 1_080_000_00,
+      payment_date: "2026-07-15",
+      due_date: "2026-08-21",
+      certificate_number: "WHT-2026-0007",
+      rule_version_id: "ng-2026.1",
+      created_at: "2026-07-15T09:00:00Z",
     },
   ],
   "/departments": [

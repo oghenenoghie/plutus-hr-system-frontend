@@ -41,6 +41,7 @@ export default function PayrollPage() {
                 <Th align="right">Net</Th>
                 <Th>Status</Th>
                 <Th>Completed</Th>
+                <Th align="right">Actions</Th>
               </tr>
             </Thead>
             <tbody>
@@ -57,6 +58,11 @@ export default function PayrollPage() {
                     <StatusBadge status={run.status} />
                   </Td>
                   <Td>{formatDate(run.completed_at)}</Td>
+                  <Td align="right">
+                    <Button size="md" variant="secondary" onClick={() => router.push(`/payroll/${run.id}`)}>
+                      View
+                    </Button>
+                  </Td>
                 </tr>
               ))}
             </tbody>

@@ -595,6 +595,18 @@ export interface Disbursement {
   skipped_employee_numbers: string[];
 }
 
+export type PayslipDeliveryStatus = "sent" | "failed";
+
+export interface PayslipDelivery {
+  id: string;
+  payslip_id: string;
+  status: PayslipDeliveryStatus;
+  recipient_email: string;
+  provider_message_id: string | null;
+  error: string | null;
+  created_at: string;
+}
+
 // --- dashboard ---
 
 export interface OrgSummary {
@@ -660,6 +672,15 @@ export interface Loan {
 
 // --- benefits ---
 
+export interface BenefitCreateBody {
+  name: string;
+  frequency: BenefitFrequency;
+  effective_date: string;
+  description?: string | null;
+  value_minor?: number | null;
+  end_date?: string | null;
+}
+
 export interface Benefit {
   id: string;
   employee_id: string;
@@ -683,6 +704,22 @@ export interface Contractor {
   account_number: string | null;
   account_name: string | null;
   created_at: string;
+}
+
+export interface ContractorCreateBody {
+  name: string;
+  tin?: string | null;
+  bank_name?: string | null;
+  account_number?: string | null;
+  account_name?: string | null;
+}
+
+export type WhtCategory = "goods" | "services";
+
+export interface WhtPaymentCreateBody {
+  category: WhtCategory;
+  gross_amount_minor: number;
+  payment_date: string;
 }
 
 export interface WhtPayment {
@@ -721,6 +758,13 @@ export interface StatutoryLiability {
 
 // --- final settlement ---
 
+export interface FinalSettlementCreateBody {
+  termination_date: string;
+  gratuity_minor: number;
+  leave_days_paid_out: number;
+  leave_payout_minor: number;
+}
+
 export interface FinalSettlement {
   id: string;
   employee_id: string;
@@ -758,6 +802,18 @@ export interface SimulationOut {
   paye_minor: number;
   loan_deduction_minor: number;
   net_pay_minor: number;
+}
+
+export interface PayRunSimulationRequestBody {
+  period_end: string;
+  overrides?: Record<string, SimulationRequestBody>;
+}
+
+export interface PayRunSimulationOut {
+  by_employee_id: Record<string, SimulationOut>;
+  total_gross_minor: number;
+  total_employer_cost_minor: number;
+  total_net_minor: number;
 }
 
 // --- chart of accounts / general ledger ---

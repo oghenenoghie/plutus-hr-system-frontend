@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, downloadAuthenticatedFile } from "@/lib/api/client";
 import type {
   ApiKey,
   ApiKeyCreateBody,
@@ -11,6 +11,7 @@ import type {
   BankStatementLineCreateBody,
   BankStatementLineMatchBody,
   Benefit,
+  BenefitCreateBody,
   Bill,
   BillCreateBody,
   Branch,
@@ -31,6 +32,7 @@ import type {
   CompanyBankAccount,
   CompanyBankAccountCreateBody,
   Contractor,
+  ContractorCreateBody,
   Customer,
   CustomerCreateBody,
   CustomerUpdateBody,
@@ -46,6 +48,7 @@ import type {
   EmployeeCreateBody,
   Expense,
   FinalSettlement,
+  FinalSettlementCreateBody,
   FixedAsset,
   FixedAssetCreateBody,
   FixedAssetDisposeBody,
@@ -70,7 +73,10 @@ import type {
   OrgSummary,
   PayRun,
   PayRunCreateBody,
+  PayRunSimulationOut,
+  PayRunSimulationRequestBody,
   Payslip,
+  PayslipDelivery,
   PerformanceReview,
   PerformanceReviewAcknowledgeBody,
   PerformanceReviewCreateBody,
@@ -101,6 +107,7 @@ import type {
   VendorCreateBody,
   VendorUpdateBody,
   WhtPayment,
+  WhtPaymentCreateBody,
 } from "@/lib/types";
 
 // --- auth ---
@@ -454,6 +461,15 @@ export const payRunsApi = {
   payslips: (id: string) => apiFetch<Payslip[]>(`/pay-runs/${id}/payslips`),
   disbursement: (id: string) => apiFetch<Disbursement>(`/pay-runs/${id}/disbursement`),
   myPayslips: () => apiFetch<Payslip[]>("/pay-runs/me/payslips"),
+  deliveries: (payRunId: string, payslipId: string) =>
+    apiFetch<PayslipDelivery[]>(`/pay-runs/${payRunId}/payslips/${payslipId}/deliveries`),
+  resend: (payRunId: string, payslipId: string) =>
+    apiFetch<void>(`/pay-runs/${payRunId}/payslips/${payslipId}/resend`, {
+      method: "POST",
+      body: {},
+    }),
+  downloadPayslipPdf: (payRunId: string, payslipId: string, filename: string) =>
+    downloadAuthenticatedFile(`/pay-runs/${payRunId}/payslips/${payslipId}/pdf`, filename),
 };
 
 // --- leave ---
@@ -492,6 +508,8 @@ export const loansApi = {
 export const benefitsApi = {
   forEmployee: (employeeId: string) => apiFetch<Benefit[]>(`/benefits/employees/${employeeId}`),
   mine: () => apiFetch<Benefit[]>("/benefits/me"),
+  assign: (employeeId: string, body: BenefitCreateBody) =>
+    apiFetch<Benefit>(`/benefits/employees/${employeeId}`, { method: "POST", body }),
   end: (id: string, endDate: string) =>
     apiFetch<Benefit>(`/benefits/${id}/end`, { method: "POST", body: { end_date: endDate } }),
 };
@@ -501,7 +519,11 @@ export const benefitsApi = {
 export const contractorsApi = {
   list: () => apiFetch<Contractor[]>("/contractors"),
   get: (id: string) => apiFetch<Contractor>(`/contractors/${id}`),
+  create: (body: ContractorCreateBody) =>
+    apiFetch<Contractor>("/contractors", { method: "POST", body }),
   payments: (id: string) => apiFetch<WhtPayment[]>(`/contractors/${id}/payments`),
+  recordPayment: (id: string, body: WhtPaymentCreateBody) =>
+    apiFetch<WhtPayment>(`/contractors/${id}/payments`, { method: "POST", body }),
 };
 
 // --- statutory liabilities ---
@@ -521,6 +543,8 @@ export const statutoryLiabilitiesApi = {
 export const finalSettlementApi = {
   forEmployee: (employeeId: string) =>
     apiFetch<FinalSettlement[]>(`/final-settlements/${employeeId}`),
+  process: (employeeId: string, body: FinalSettlementCreateBody) =>
+    apiFetch<FinalSettlement>(`/final-settlements/${employeeId}`, { method: "POST", body }),
 };
 
 // --- simulation ---
@@ -528,4 +552,6 @@ export const finalSettlementApi = {
 export const simulationApi = {
   payslip: (employeeId: string, body: SimulationRequestBody) =>
     apiFetch<SimulationOut>(`/simulation/payslip/${employeeId}`, { method: "POST", body }),
+  payRun: (body: PayRunSimulationRequestBody) =>
+    apiFetch<PayRunSimulationOut>("/simulation/pay-run", { method: "POST", body }),
 };
