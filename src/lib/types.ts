@@ -96,6 +96,22 @@ export interface EmployeeCreateBody {
   shift_id?: string;
 }
 
+export interface BankAccount {
+  id: string;
+  employee_id: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  verified: boolean;
+  created_at: string;
+}
+
+export interface BankAccountInput {
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+}
+
 // --- departments ---
 
 export interface Department {

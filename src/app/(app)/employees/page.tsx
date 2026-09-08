@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Avatar } from "@/components/ui/avatar";
@@ -8,14 +9,22 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
+import { Drawer } from "@/components/ui/drawer";
+import { Input, Label } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
+import { useToast } from "@/components/ui/toast";
+import { ApiError } from "@/lib/api/client";
 import { departmentsApi, employeesApi, jobGradesApi, shiftsApi } from "@/lib/api/endpoints";
 import { formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
+import { NIGERIAN_BANKS } from "@/lib/nigerian-banks";
+import type { Employee } from "@/lib/types";
 
 export default function EmployeesPage() {
   const router = useRouter();
   const employees = useApiResource(() => employeesApi.list());
+  const [bankAccountFor, setBankAccountFor] = useState<Employee | null>(null);
   const departments = useApiResource(() => departmentsApi.list());
   const departmentsById = new Map((departments.data ?? []).map((department) => [department.id, department]));
   const jobGrades = useApiResource(() => jobGradesApi.list());
@@ -50,6 +59,7 @@ export default function EmployeesPage() {
                 <Th>TIN</Th>
                 <Th align="right">Gross / Period</Th>
                 <Th>Status</Th>
+                <Th align="right">Actions</Th>
               </tr>
             </Thead>
             <tbody>
@@ -96,6 +106,11 @@ export default function EmployeesPage() {
                     <Td>
                       <StatusBadge status={employee.lifecycle_state} />
                     </Td>
+                    <Td align="right">
+                      <Button size="md" variant="secondary" onClick={() => setBankAccountFor(employee)}>
+                        Bank Account
+                      </Button>
+                    </Td>
                   </tr>
                 );
               })}
@@ -103,6 +118,120 @@ export default function EmployeesPage() {
           </Table>
         ) : null}
       </Card>
+
+      {bankAccountFor ? (
+        <BankAccountDrawer employee={bankAccountFor} onClose={() => setBankAccountFor(null)} />
+      ) : null}
     </div>
+  );
+}
+
+function BankAccountDrawer({ employee, onClose }: { employee: Employee; onClose: () => void }) {
+  const existing = useApiResource(() => employeesApi.getBankAccount(employee.id), [employee.id]);
+  const { showToast } = useToast();
+  const [bankChoice, setBankChoice] = useState("");
+  const [otherBankName, setOtherBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Seeds local editable state from the server once loaded — not a
+    // derived-state loop, since the user then owns edits until Save.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (existing.data) {
+      const isKnownBank = (NIGERIAN_BANKS as readonly string[]).includes(existing.data.bank_name);
+      setBankChoice(isKnownBank ? existing.data.bank_name : "Other");
+      setOtherBankName(isKnownBank ? "" : existing.data.bank_name);
+      setAccountNumber(existing.data.account_number);
+      setAccountName(existing.data.account_name);
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [existing.data]);
+
+  const bankName = bankChoice === "Other" ? otherBankName : bankChoice;
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      await employeesApi.upsertBankAccount(employee.id, {
+        bank_name: bankName,
+        account_number: accountNumber,
+        account_name: accountName,
+      });
+      showToast("Bank account saved", "good");
+      onClose();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Drawer title={`Bank Account — ${employee.full_name}`} onClose={onClose}>
+      {existing.loading ? (
+        <LoadingState />
+      ) : (
+        <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
+          {existing.data?.verified ? (
+            <Badge tone="good">Checksum verified</Badge>
+          ) : existing.data ? (
+            <Badge tone="neutral">Unverified bank — format only</Badge>
+          ) : null}
+          <div>
+            <Label htmlFor="bank">Bank</Label>
+            <Select id="bank" value={bankChoice} onChange={(event) => setBankChoice(event.target.value)} required>
+              <option value="">Select bank</option>
+              {NIGERIAN_BANKS.map((bank) => (
+                <option key={bank} value={bank}>
+                  {bank}
+                </option>
+              ))}
+              <option value="Other">Other</option>
+            </Select>
+          </div>
+          {bankChoice === "Other" ? (
+            <div>
+              <Label htmlFor="otherBankName">Bank Name</Label>
+              <Input
+                id="otherBankName"
+                value={otherBankName}
+                onChange={(event) => setOtherBankName(event.target.value)}
+                required
+              />
+            </div>
+          ) : null}
+          <div>
+            <Label htmlFor="accountNumber">Account Number</Label>
+            <Input
+              id="accountNumber"
+              value={accountNumber}
+              onChange={(event) => setAccountNumber(event.target.value.replace(/\D/g, "").slice(0, 10))}
+              inputMode="numeric"
+              placeholder="10-digit NUBAN"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="accountName">Account Name</Label>
+            <Input
+              id="accountName"
+              value={accountName}
+              onChange={(event) => setAccountName(event.target.value)}
+              required
+            />
+          </div>
+          <div className="mt-auto flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </form>
+      )}
+    </Drawer>
   );
 }
