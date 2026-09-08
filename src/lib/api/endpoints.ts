@@ -31,6 +31,7 @@ import type {
   CompanyBankAccount,
   CompanyBankAccountCreateBody,
   Contractor,
+  ContractorCreateBody,
   Customer,
   CustomerCreateBody,
   CustomerUpdateBody,
@@ -102,6 +103,7 @@ import type {
   VendorCreateBody,
   VendorUpdateBody,
   WhtPayment,
+  WhtPaymentCreateBody,
 } from "@/lib/types";
 
 // --- auth ---
@@ -511,7 +513,11 @@ export const benefitsApi = {
 export const contractorsApi = {
   list: () => apiFetch<Contractor[]>("/contractors"),
   get: (id: string) => apiFetch<Contractor>(`/contractors/${id}`),
+  create: (body: ContractorCreateBody) =>
+    apiFetch<Contractor>("/contractors", { method: "POST", body }),
   payments: (id: string) => apiFetch<WhtPayment[]>(`/contractors/${id}/payments`),
+  recordPayment: (id: string, body: WhtPaymentCreateBody) =>
+    apiFetch<WhtPayment>(`/contractors/${id}/payments`, { method: "POST", body }),
 };
 
 // --- statutory liabilities ---

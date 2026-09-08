@@ -454,6 +454,21 @@ export const MOCK_FIXTURES = {
       created_at: "2025-11-01T09:00:00Z",
     },
   ],
+  "/contractors/c1111111-0000-0000-0000-000000000001/payments": [
+    {
+      id: "wp111111-0000-0000-0000-000000000001",
+      contractor_id: "c1111111-0000-0000-0000-000000000001",
+      category: "services",
+      gross_amount_minor: 1_200_000_00,
+      wht_amount_minor: 120_000_00,
+      net_amount_minor: 1_080_000_00,
+      payment_date: "2026-07-15",
+      due_date: "2026-08-21",
+      certificate_number: "WHT-2026-0007",
+      rule_version_id: "ng-2026.1",
+      created_at: "2026-07-15T09:00:00Z",
+    },
+  ],
   "/departments": [
     {
       id: "d1111111-0000-0000-0000-000000000001",

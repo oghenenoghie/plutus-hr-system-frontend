@@ -697,6 +697,22 @@ export interface Contractor {
   created_at: string;
 }
 
+export interface ContractorCreateBody {
+  name: string;
+  tin?: string | null;
+  bank_name?: string | null;
+  account_number?: string | null;
+  account_name?: string | null;
+}
+
+export type WhtCategory = "goods" | "services";
+
+export interface WhtPaymentCreateBody {
+  category: WhtCategory;
+  gross_amount_minor: number;
+  payment_date: string;
+}
+
 export interface WhtPayment {
   id: string;
   contractor_id: string;
