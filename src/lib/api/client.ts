@@ -107,3 +107,33 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   const text = await res.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }
+
+// Triggers a browser download for an authenticated binary endpoint (a PDF,
+// for instance) that apiFetch can't handle since it always parses JSON.
+export async function downloadAuthenticatedFile(path: string, filename: string): Promise<void> {
+  if (MOCK_MODE) {
+    throw new ApiError(501, "Downloads are disabled in mock preview mode.");
+  }
+
+  const token = getAccessToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!res.ok) {
+    const detail = await res
+      .json()
+      .then((data) => data?.detail ?? data)
+      .catch(() => res.statusText);
+    throw new ApiError(res.status, detail);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}

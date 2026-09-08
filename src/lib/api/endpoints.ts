@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, downloadAuthenticatedFile } from "@/lib/api/client";
 import type {
   ApiKey,
   ApiKeyCreateBody,
@@ -71,6 +71,7 @@ import type {
   PayRun,
   PayRunCreateBody,
   Payslip,
+  PayslipDelivery,
   PerformanceReview,
   PerformanceReviewAcknowledgeBody,
   PerformanceReviewCreateBody,
@@ -454,6 +455,15 @@ export const payRunsApi = {
   payslips: (id: string) => apiFetch<Payslip[]>(`/pay-runs/${id}/payslips`),
   disbursement: (id: string) => apiFetch<Disbursement>(`/pay-runs/${id}/disbursement`),
   myPayslips: () => apiFetch<Payslip[]>("/pay-runs/me/payslips"),
+  deliveries: (payRunId: string, payslipId: string) =>
+    apiFetch<PayslipDelivery[]>(`/pay-runs/${payRunId}/payslips/${payslipId}/deliveries`),
+  resend: (payRunId: string, payslipId: string) =>
+    apiFetch<void>(`/pay-runs/${payRunId}/payslips/${payslipId}/resend`, {
+      method: "POST",
+      body: {},
+    }),
+  downloadPayslipPdf: (payRunId: string, payslipId: string, filename: string) =>
+    downloadAuthenticatedFile(`/pay-runs/${payRunId}/payslips/${payslipId}/pdf`, filename),
 };
 
 // --- leave ---

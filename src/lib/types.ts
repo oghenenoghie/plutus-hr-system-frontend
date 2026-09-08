@@ -595,6 +595,18 @@ export interface Disbursement {
   skipped_employee_numbers: string[];
 }
 
+export type PayslipDeliveryStatus = "sent" | "failed";
+
+export interface PayslipDelivery {
+  id: string;
+  payslip_id: string;
+  status: PayslipDeliveryStatus;
+  recipient_email: string;
+  provider_message_id: string | null;
+  error: string | null;
+  created_at: string;
+}
+
 // --- dashboard ---
 
 export interface OrgSummary {
