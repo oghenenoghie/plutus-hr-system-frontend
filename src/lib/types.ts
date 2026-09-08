@@ -11,7 +11,7 @@ export type EmploymentType =
   | "intern"
   | "consultant";
 export type LifecycleState = "active" | "suspended" | "terminated";
-export type PayRunStatus = "draft" | "processing" | "completed" | "failed";
+export type PayRunStatus = "draft" | "processing" | "completed" | "failed" | "reversed";
 export type LeaveType = "annual" | "sick" | "maternity" | "paternity" | "unpaid";
 export type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
 export type ExpenseStatus = "pending" | "approved" | "rejected" | "reimbursed";
@@ -588,6 +588,7 @@ export interface PayRun {
   net_minor: number;
   created_at: string;
   completed_at: string | null;
+  reversed_at: string | null;
 }
 
 export interface Payslip {

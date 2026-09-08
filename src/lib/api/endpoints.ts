@@ -486,6 +486,11 @@ export const payRunsApi = {
     }),
   downloadPayslipPdf: (payRunId: string, payslipId: string, filename: string) =>
     downloadAuthenticatedFile(`/pay-runs/${payRunId}/payslips/${payslipId}/pdf`, filename),
+  reverse: (id: string, acknowledgeFiledOrRemitted = false) =>
+    apiFetch<PayRun>(`/pay-runs/${id}/reverse`, {
+      method: "POST",
+      body: { acknowledge_filed_or_remitted: acknowledgeFiledOrRemitted },
+    }),
 };
 
 // --- leave ---

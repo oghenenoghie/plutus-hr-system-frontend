@@ -124,6 +124,7 @@ const payRun = {
   net_minor: 1_198_400_00,
   created_at: "2026-08-28T10:00:00Z",
   completed_at: "2026-08-29T14:32:00Z",
+  reversed_at: null,
 };
 
 // One payslip per employees[], sized so the four gross_minor figures sum to

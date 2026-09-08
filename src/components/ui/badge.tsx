@@ -23,6 +23,7 @@ const STATUS_TONE: Record<string, Tone> = {
   processing: "warn",
   draft: "neutral",
   failed: "bad",
+  reversed: "bad",
   // leave / expenses
   approved: "good",
   pending: "warn",
