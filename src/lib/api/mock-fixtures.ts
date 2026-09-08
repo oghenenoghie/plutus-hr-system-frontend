@@ -25,6 +25,7 @@ const employees = [
     annual_rent_paid_minor: 1_200_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 20,
+    salary_masked: false,
     created_at: "2023-03-01T09:00:00Z",
   },
   {
@@ -50,6 +51,7 @@ const employees = [
     annual_rent_paid_minor: 900_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 20,
+    salary_masked: false,
     created_at: "2024-06-15T09:00:00Z",
   },
   {
@@ -75,6 +77,10 @@ const employees = [
     annual_rent_paid_minor: 700_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 20,
+    // Illustrates the flag itself — an admin still sees the real figures
+    // (masking only ever hides them from a MANAGER viewer, per the backend),
+    // so this fixture keeps real numbers rather than nulling them out.
+    salary_masked: true,
     created_at: "2025-01-10T09:00:00Z",
   },
   {
@@ -100,6 +106,7 @@ const employees = [
     annual_rent_paid_minor: 500_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 18,
+    salary_masked: false,
     created_at: "2022-11-20T09:00:00Z",
   },
 ];
@@ -117,6 +124,7 @@ const payRun = {
   net_minor: 1_198_400_00,
   created_at: "2026-08-28T10:00:00Z",
   completed_at: "2026-08-29T14:32:00Z",
+  reversed_at: null,
 };
 
 // One payslip per employees[], sized so the four gross_minor figures sum to
@@ -348,6 +356,28 @@ export const MOCK_FIXTURES = {
   ],
   "/employees": employees,
   "/employees/me": employees[0],
+  // One with a checksum-verified known bank, one on an unlisted bank
+  // (format-only), and the remaining two left unset to demo that state too.
+  "/employees/e1111111-0000-0000-0000-000000000001/bank-account": {
+    id: "ba-01",
+    employee_id: "e1111111-0000-0000-0000-000000000001",
+    bank_name: "First Bank of Nigeria",
+    account_number: "0000014579",
+    account_name: "Chidinma Okafor",
+    verified: true,
+    created_at: "2023-03-02T09:00:00Z",
+  },
+  "/employees/e1111111-0000-0000-0000-000000000002/bank-account": {
+    id: "ba-02",
+    employee_id: "e1111111-0000-0000-0000-000000000002",
+    bank_name: "Some Small Fintech Bank",
+    account_number: "1234567890",
+    account_name: "Tunde Bakare",
+    verified: false,
+    created_at: "2024-06-16T09:00:00Z",
+  },
+  "/employees/e1111111-0000-0000-0000-000000000003/bank-account": null,
+  "/employees/e1111111-0000-0000-0000-000000000004/bank-account": null,
   "/pay-runs/p1111111-0000-0000-0000-000000000001": payRun,
   "/pay-runs/p1111111-0000-0000-0000-000000000001/payslips": payslips,
   "/pay-runs/p1111111-0000-0000-0000-000000000001/payslips/pk111111-0000-0000-0000-000000000001/deliveries":

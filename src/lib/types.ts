@@ -11,7 +11,7 @@ export type EmploymentType =
   | "intern"
   | "consultant";
 export type LifecycleState = "active" | "suspended" | "terminated";
-export type PayRunStatus = "draft" | "processing" | "completed" | "failed";
+export type PayRunStatus = "draft" | "processing" | "completed" | "failed" | "reversed";
 export type LeaveType = "annual" | "sick" | "maternity" | "paternity" | "unpaid";
 export type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
 export type ExpenseStatus = "pending" | "approved" | "rejected" | "reimbursed";
@@ -53,13 +53,17 @@ export interface Employee {
   job_grade_id: string | null;
   shift_id: string | null;
   tin: string | null;
-  basic_minor: number;
-  housing_minor: number;
-  transport_minor: number;
-  other_earnings_minor: number;
-  annual_rent_paid_minor: number;
+  // null when salary_masked is true and the viewer is a manager (not the
+  // employee themselves, and not admin/payroll_manager) — never null for
+  // any other viewer.
+  basic_minor: number | null;
+  housing_minor: number | null;
+  transport_minor: number | null;
+  other_earnings_minor: number | null;
+  annual_rent_paid_minor: number | null;
   pay_frequency: PayFrequency;
   annual_leave_entitlement_days: number;
+  salary_masked: boolean;
   created_at: string;
 }
 
@@ -94,6 +98,22 @@ export interface EmployeeCreateBody {
   department_id?: string;
   job_grade_id?: string;
   shift_id?: string;
+}
+
+export interface BankAccount {
+  id: string;
+  employee_id: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  verified: boolean;
+  created_at: string;
+}
+
+export interface BankAccountInput {
+  bank_name: string;
+  account_number: string;
+  account_name: string;
 }
 
 // --- departments ---
@@ -568,6 +588,7 @@ export interface PayRun {
   net_minor: number;
   created_at: string;
   completed_at: string | null;
+  reversed_at: string | null;
 }
 
 export interface Payslip {

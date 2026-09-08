@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
+import { ConfirmActionButton } from "@/components/ui/confirm-action-button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
@@ -41,6 +42,26 @@ export default function PayRunDetailPage({ params }: { params: Promise<{ id: str
   const [loadingDeliveriesId, setLoadingDeliveriesId] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [needsAcknowledgment, setNeedsAcknowledgment] = useState(false);
+
+  async function handleReverse(acknowledgeFiledOrRemitted: boolean) {
+    try {
+      await payRunsApi.reverse(id, acknowledgeFiledOrRemitted);
+      showToast("Pay run reversed", "good");
+      setNeedsAcknowledgment(false);
+      payRun.reload();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 400) {
+        const detail = String(err.detail ?? err.message);
+        if (detail.includes("acknowledge_filed_or_remitted")) {
+          setNeedsAcknowledgment(true);
+          showToast(detail, "bad");
+          return;
+        }
+      }
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Reversal failed.", "bad");
+    }
+  }
 
   async function loadDeliveries(slipId: string) {
     setLoadingDeliveriesId(slipId);
@@ -103,6 +124,18 @@ export default function PayRunDetailPage({ params }: { params: Promise<{ id: str
           <PageHeader
             title={`${formatDate(payRun.data.period_start)} – ${formatDate(payRun.data.period_end)}`}
             subtitle={`${titleCase(payRun.data.frequency)} pay run · ${payRun.data.employee_count} employees`}
+            action={
+              payRun.data.status === "completed" ? (
+                <ConfirmActionButton
+                  action={() => handleReverse(false)}
+                  label="Reverse Pay Run"
+                  tone="danger"
+                  confirmTitle="Reverse this pay run?"
+                  confirmMessage="This posts a correcting journal entry, restores any loan balances this run repaid, and removes any statutory liabilities it generated that haven't been filed yet. Payslips themselves are never edited or deleted. This can't be undone."
+                  confirmLabel="Reverse"
+                />
+              ) : null
+            }
           />
 
           <Card className="mb-6">
@@ -110,8 +143,31 @@ export default function PayRunDetailPage({ params }: { params: Promise<{ id: str
               <SummaryStat label="Status" value={<StatusBadge status={payRun.data.status} />} />
               <SummaryStat label="Gross" value={formatNaira(payRun.data.gross_minor)} />
               <SummaryStat label="Net" value={formatNaira(payRun.data.net_minor)} />
-              <SummaryStat label="Completed" value={formatDate(payRun.data.completed_at)} />
+              <SummaryStat
+                label={payRun.data.status === "reversed" ? "Reversed" : "Completed"}
+                value={formatDate(
+                  payRun.data.status === "reversed" ? payRun.data.reversed_at : payRun.data.completed_at,
+                )}
+              />
             </div>
+            {needsAcknowledgment ? (
+              <div className="mt-4 rounded-panel border border-bad bg-bad-tint px-4 py-3">
+                <p className="text-[13px] font-bold text-bad">
+                  This run has statutory liabilities already filed or remitted with a government
+                  authority — reversing it cannot undo that filing.
+                </p>
+                <div className="mt-3">
+                  <ConfirmActionButton
+                    action={() => handleReverse(true)}
+                    label="Reverse Anyway"
+                    tone="danger"
+                    confirmTitle="Reverse despite the filed/remitted liability?"
+                    confirmMessage="The filed or remitted liability itself will be left exactly as it is — this only reverses the payroll run's own postings and side effects."
+                    confirmLabel="Reverse Anyway"
+                  />
+                </div>
+              </div>
+            ) : null}
           </Card>
 
           <Card>

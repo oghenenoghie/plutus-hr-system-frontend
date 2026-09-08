@@ -170,15 +170,25 @@ function OrgWideSimulation() {
     setAfter(null);
     try {
       const employees = await employeesApi.list();
-      const activeEmployees = employees.filter((employee) => employee.lifecycle_state === "active");
+      // This page is admin/payroll_manager only, so compensation is never
+      // actually masked (null) for this viewer — the null check is just
+      // satisfying the type, which is shared with the manager-facing
+      // Employees list where a masked report's figures really can be null.
+      const activeEmployees = employees.filter(
+        (employee) =>
+          employee.lifecycle_state === "active" &&
+          employee.basic_minor !== null &&
+          employee.housing_minor !== null &&
+          employee.transport_minor !== null,
+      );
       const pct = Number(raisePercent) || 0;
       const overrides: Record<string, SimulationRequestBody> = {};
       for (const employee of activeEmployees) {
         overrides[employee.id] = {
           period_end: periodEnd,
-          basic_minor: Math.round(employee.basic_minor * (1 + pct / 100)),
-          housing_minor: Math.round(employee.housing_minor * (1 + pct / 100)),
-          transport_minor: Math.round(employee.transport_minor * (1 + pct / 100)),
+          basic_minor: Math.round(employee.basic_minor! * (1 + pct / 100)),
+          housing_minor: Math.round(employee.housing_minor! * (1 + pct / 100)),
+          transport_minor: Math.round(employee.transport_minor! * (1 + pct / 100)),
         };
       }
       const [beforeResult, afterResult] = await Promise.all([

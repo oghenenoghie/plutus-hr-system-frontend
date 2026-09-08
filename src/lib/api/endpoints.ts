@@ -12,6 +12,8 @@ import type {
   AssetAssignmentReturnBody,
   AuditLogEntry,
   BalanceSheet,
+  BankAccount,
+  BankAccountInput,
   BankStatementLine,
   BankStatementLineCreateBody,
   BankStatementLineMatchBody,
@@ -142,6 +144,15 @@ export const employeesApi = {
   get: (id: string) => apiFetch<Employee>(`/employees/${id}`),
   create: (body: EmployeeCreateBody) =>
     apiFetch<Employee>("/employees", { method: "POST", body }),
+  getBankAccount: (id: string) =>
+    apiFetch<BankAccount | null>(`/employees/${id}/bank-account`),
+  upsertBankAccount: (id: string, body: BankAccountInput) =>
+    apiFetch<BankAccount>(`/employees/${id}/bank-account`, { method: "PUT", body }),
+  setSalaryMasked: (id: string, salaryMasked: boolean) =>
+    apiFetch<Employee>(`/employees/${id}`, {
+      method: "PATCH",
+      body: { salary_masked: salaryMasked },
+    }),
 };
 
 // --- departments ---
@@ -475,6 +486,11 @@ export const payRunsApi = {
     }),
   downloadPayslipPdf: (payRunId: string, payslipId: string, filename: string) =>
     downloadAuthenticatedFile(`/pay-runs/${payRunId}/payslips/${payslipId}/pdf`, filename),
+  reverse: (id: string, acknowledgeFiledOrRemitted = false) =>
+    apiFetch<PayRun>(`/pay-runs/${id}/reverse`, {
+      method: "POST",
+      body: { acknowledge_filed_or_remitted: acknowledgeFiledOrRemitted },
+    }),
 };
 
 // --- leave ---
