@@ -73,6 +73,8 @@ import type {
   OrgSummary,
   PayRun,
   PayRunCreateBody,
+  PayRunSimulationOut,
+  PayRunSimulationRequestBody,
   Payslip,
   PayslipDelivery,
   PerformanceReview,
@@ -550,4 +552,6 @@ export const finalSettlementApi = {
 export const simulationApi = {
   payslip: (employeeId: string, body: SimulationRequestBody) =>
     apiFetch<SimulationOut>(`/simulation/payslip/${employeeId}`, { method: "POST", body }),
+  payRun: (body: PayRunSimulationRequestBody) =>
+    apiFetch<PayRunSimulationOut>("/simulation/pay-run", { method: "POST", body }),
 };

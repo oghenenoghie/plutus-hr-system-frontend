@@ -804,6 +804,18 @@ export interface SimulationOut {
   net_pay_minor: number;
 }
 
+export interface PayRunSimulationRequestBody {
+  period_end: string;
+  overrides?: Record<string, SimulationRequestBody>;
+}
+
+export interface PayRunSimulationOut {
+  by_employee_id: Record<string, SimulationOut>;
+  total_gross_minor: number;
+  total_employer_cost_minor: number;
+  total_net_minor: number;
+}
+
 // --- chart of accounts / general ledger ---
 
 export type AccountType = "asset" | "liability" | "equity" | "revenue" | "expense";
