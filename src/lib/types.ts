@@ -672,6 +672,15 @@ export interface Loan {
 
 // --- benefits ---
 
+export interface BenefitCreateBody {
+  name: string;
+  frequency: BenefitFrequency;
+  effective_date: string;
+  description?: string | null;
+  value_minor?: number | null;
+  end_date?: string | null;
+}
+
 export interface Benefit {
   id: string;
   employee_id: string;

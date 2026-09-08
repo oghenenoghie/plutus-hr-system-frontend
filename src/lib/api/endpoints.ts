@@ -11,6 +11,7 @@ import type {
   BankStatementLineCreateBody,
   BankStatementLineMatchBody,
   Benefit,
+  BenefitCreateBody,
   Bill,
   BillCreateBody,
   Branch,
@@ -505,6 +506,8 @@ export const loansApi = {
 export const benefitsApi = {
   forEmployee: (employeeId: string) => apiFetch<Benefit[]>(`/benefits/employees/${employeeId}`),
   mine: () => apiFetch<Benefit[]>("/benefits/me"),
+  assign: (employeeId: string, body: BenefitCreateBody) =>
+    apiFetch<Benefit>(`/benefits/employees/${employeeId}`, { method: "POST", body }),
   end: (id: string, endDate: string) =>
     apiFetch<Benefit>(`/benefits/${id}/end`, { method: "POST", body: { end_date: endDate } }),
 };

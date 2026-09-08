@@ -442,6 +442,19 @@ export const MOCK_FIXTURES = {
       created_at: "2026-03-28T09:00:00Z",
     },
   ],
+  "/benefits/employees/e1111111-0000-0000-0000-000000000001": [
+    {
+      id: "bn111111-0000-0000-0000-000000000001",
+      employee_id: "e1111111-0000-0000-0000-000000000001",
+      name: "Health Insurance",
+      description: "HMO cover — employee plus one dependent.",
+      value_minor: 25_000_00,
+      frequency: "monthly",
+      effective_date: "2023-03-01",
+      end_date: null,
+      created_at: "2023-03-01T09:00:00Z",
+    },
+  ],
   "/final-settlements/e1111111-0000-0000-0000-000000000004": [
     {
       id: "fs111111-0000-0000-0000-000000000001",
