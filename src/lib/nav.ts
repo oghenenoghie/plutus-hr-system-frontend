@@ -34,7 +34,8 @@ export interface NavItem {
     | "contractors"
     | "reports"
     | "settlement"
-    | "simulation";
+    | "simulation"
+    | "approvalWorkflows";
   roles: Role[];
 }
 
@@ -66,6 +67,12 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/settlement", label: "Final Settlement", icon: "settlement", roles: ["admin", "payroll_manager"] },
   { href: "/simulation", label: "Simulation", icon: "simulation", roles: ["admin", "payroll_manager"] },
   { href: "/integrations", label: "Integrations", icon: "integrations", roles: ["admin"] },
+  {
+    href: "/approval-workflows",
+    label: "Approval Workflows",
+    icon: "approvalWorkflows",
+    roles: ["admin"],
+  },
   {
     href: "/general-ledger",
     label: "General Ledger",
