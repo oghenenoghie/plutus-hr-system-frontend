@@ -16,6 +16,7 @@ import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
 import { departmentsApi, employeesApi, jobGradesApi, shiftsApi } from "@/lib/api/endpoints";
+import { useAuth } from "@/lib/auth/auth-context";
 import { formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 import { NIGERIAN_BANKS } from "@/lib/nigerian-banks";
@@ -23,14 +24,26 @@ import type { Employee } from "@/lib/types";
 
 export default function EmployeesPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const canManageMasking = user?.role === "admin" || user?.role === "payroll_manager";
   const employees = useApiResource(() => employeesApi.list());
   const [bankAccountFor, setBankAccountFor] = useState<Employee | null>(null);
+  const { showToast } = useToast();
   const departments = useApiResource(() => departmentsApi.list());
   const departmentsById = new Map((departments.data ?? []).map((department) => [department.id, department]));
   const jobGrades = useApiResource(() => jobGradesApi.list());
   const jobGradesById = new Map((jobGrades.data ?? []).map((jobGrade) => [jobGrade.id, jobGrade]));
   const shifts = useApiResource(() => shiftsApi.list());
   const shiftsById = new Map((shifts.data ?? []).map((shift) => [shift.id, shift]));
+
+  async function toggleMasking(employee: Employee) {
+    try {
+      await employeesApi.setSalaryMasked(employee.id, !employee.salary_masked);
+      employees.reload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    }
+  }
 
   return (
     <div>
@@ -64,8 +77,14 @@ export default function EmployeesPage() {
             </Thead>
             <tbody>
               {employees.data.map((employee) => {
+                const { basic_minor, housing_minor, transport_minor, other_earnings_minor } = employee;
                 const grossMinor =
-                  employee.basic_minor + employee.housing_minor + employee.transport_minor + employee.other_earnings_minor;
+                  basic_minor === null ||
+                  housing_minor === null ||
+                  transport_minor === null ||
+                  other_earnings_minor === null
+                    ? null
+                    : basic_minor + housing_minor + transport_minor + other_earnings_minor;
                 return (
                   <tr key={employee.id}>
                     <Td>
@@ -102,14 +121,27 @@ export default function EmployeesPage() {
                         <Badge tone="bad">Missing</Badge>
                       )}
                     </Td>
-                    <Td align="right">{formatNaira(grossMinor)}</Td>
+                    <Td align="right">
+                      {grossMinor === null ? (
+                        <Badge tone="neutral">Masked</Badge>
+                      ) : (
+                        formatNaira(grossMinor)
+                      )}
+                    </Td>
                     <Td>
                       <StatusBadge status={employee.lifecycle_state} />
                     </Td>
                     <Td align="right">
-                      <Button size="md" variant="secondary" onClick={() => setBankAccountFor(employee)}>
-                        Bank Account
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        {canManageMasking ? (
+                          <Button size="md" variant="secondary" onClick={() => toggleMasking(employee)}>
+                            {employee.salary_masked ? "Unmask Salary" : "Mask Salary"}
+                          </Button>
+                        ) : null}
+                        <Button size="md" variant="secondary" onClick={() => setBankAccountFor(employee)}>
+                          Bank Account
+                        </Button>
+                      </div>
                     </Td>
                   </tr>
                 );

@@ -53,13 +53,17 @@ export interface Employee {
   job_grade_id: string | null;
   shift_id: string | null;
   tin: string | null;
-  basic_minor: number;
-  housing_minor: number;
-  transport_minor: number;
-  other_earnings_minor: number;
-  annual_rent_paid_minor: number;
+  // null when salary_masked is true and the viewer is a manager (not the
+  // employee themselves, and not admin/payroll_manager) — never null for
+  // any other viewer.
+  basic_minor: number | null;
+  housing_minor: number | null;
+  transport_minor: number | null;
+  other_earnings_minor: number | null;
+  annual_rent_paid_minor: number | null;
   pay_frequency: PayFrequency;
   annual_leave_entitlement_days: number;
+  salary_masked: boolean;
   created_at: string;
 }
 

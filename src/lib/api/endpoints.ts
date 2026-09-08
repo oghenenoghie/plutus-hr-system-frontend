@@ -148,6 +148,11 @@ export const employeesApi = {
     apiFetch<BankAccount | null>(`/employees/${id}/bank-account`),
   upsertBankAccount: (id: string, body: BankAccountInput) =>
     apiFetch<BankAccount>(`/employees/${id}/bank-account`, { method: "PUT", body }),
+  setSalaryMasked: (id: string, salaryMasked: boolean) =>
+    apiFetch<Employee>(`/employees/${id}`, {
+      method: "PATCH",
+      body: { salary_masked: salaryMasked },
+    }),
 };
 
 // --- departments ---

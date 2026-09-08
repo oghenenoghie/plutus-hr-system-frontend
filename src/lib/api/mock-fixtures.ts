@@ -25,6 +25,7 @@ const employees = [
     annual_rent_paid_minor: 1_200_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 20,
+    salary_masked: false,
     created_at: "2023-03-01T09:00:00Z",
   },
   {
@@ -50,6 +51,7 @@ const employees = [
     annual_rent_paid_minor: 900_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 20,
+    salary_masked: false,
     created_at: "2024-06-15T09:00:00Z",
   },
   {
@@ -75,6 +77,10 @@ const employees = [
     annual_rent_paid_minor: 700_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 20,
+    // Illustrates the flag itself — an admin still sees the real figures
+    // (masking only ever hides them from a MANAGER viewer, per the backend),
+    // so this fixture keeps real numbers rather than nulling them out.
+    salary_masked: true,
     created_at: "2025-01-10T09:00:00Z",
   },
   {
@@ -100,6 +106,7 @@ const employees = [
     annual_rent_paid_minor: 500_000_00,
     pay_frequency: "monthly",
     annual_leave_entitlement_days: 18,
+    salary_masked: false,
     created_at: "2022-11-20T09:00:00Z",
   },
 ];
