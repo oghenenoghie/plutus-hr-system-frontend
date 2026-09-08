@@ -1193,3 +1193,16 @@ export interface ApprovalInstance {
   decided_at: string | null;
   decisions: ApprovalInstanceDecision[];
 }
+
+// --- audit log ---
+
+export interface AuditLogEntry {
+  id: string;
+  account_id: string | null;
+  role: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  event_metadata: Record<string, unknown>;
+  created_at: string;
+}
