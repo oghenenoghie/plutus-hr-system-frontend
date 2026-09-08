@@ -18,6 +18,7 @@ import {
   Gavel,
   GraduationCap,
   HandCoins,
+  History,
   Landmark,
   Laptop,
   LayoutDashboard,
@@ -33,6 +34,7 @@ import {
   UserSquare2,
   Users,
   Users2,
+  Workflow,
 } from "lucide-react";
 
 import { navForRole, ROLE_LABELS, type NavItem } from "@/lib/nav";
@@ -54,6 +56,8 @@ const ICONS: Record<NavItem["icon"], typeof LayoutDashboard> = {
   unionDues: Users2,
   assets: Laptop,
   integrations: Link2,
+  approvalWorkflows: Workflow,
+  auditLog: History,
   generalLedger: Landmark,
   bills: CreditCard,
   invoices: Receipt,

@@ -1148,3 +1148,61 @@ export interface ReconciliationSummary {
   unmatched_statement_lines: BankStatementLine[];
   unmatched_ledger_entries: LedgerEntry[];
 }
+
+// --- approval workflows ---
+
+export type ApprovalRequestType = "leave_request" | "expense" | "bill";
+export type ApprovalStepEligibilityType =
+  | "role"
+  | "direct_manager"
+  | "department_head"
+  | "specific_person";
+export type ApprovalInstanceStatus = "pending" | "approved" | "rejected";
+export type ApprovalDecisionType = "approve" | "reject";
+
+export interface ApprovalWorkflowStepInput {
+  eligibility_type: ApprovalStepEligibilityType;
+  eligible_role?: Role | null;
+  eligible_account_id?: string | null;
+}
+
+export interface ApprovalWorkflowStep extends ApprovalWorkflowStepInput {
+  id: string;
+  request_type: ApprovalRequestType;
+  step_order: number;
+  created_at: string;
+}
+
+export interface ApprovalInstanceDecision {
+  id: string;
+  step_order: number;
+  decision: ApprovalDecisionType;
+  decided_by_account_id: string | null;
+  decided_by_role: string | null;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface ApprovalInstance {
+  id: string;
+  request_type: ApprovalRequestType;
+  request_id: string;
+  current_step: number;
+  status: ApprovalInstanceStatus;
+  created_at: string;
+  decided_at: string | null;
+  decisions: ApprovalInstanceDecision[];
+}
+
+// --- audit log ---
+
+export interface AuditLogEntry {
+  id: string;
+  account_id: string | null;
+  role: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  event_metadata: Record<string, unknown>;
+  created_at: string;
+}

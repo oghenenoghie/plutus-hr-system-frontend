@@ -3,9 +3,14 @@ import type {
   ApiKey,
   ApiKeyCreateBody,
   ApiKeyCreated,
+  ApprovalInstance,
+  ApprovalRequestType,
+  ApprovalWorkflowStep,
+  ApprovalWorkflowStepInput,
   AssetAssignment,
   AssetAssignmentCreateBody,
   AssetAssignmentReturnBody,
+  AuditLogEntry,
   BalanceSheet,
   BankStatementLine,
   BankStatementLineCreateBody,
@@ -554,4 +559,35 @@ export const simulationApi = {
     apiFetch<SimulationOut>(`/simulation/payslip/${employeeId}`, { method: "POST", body }),
   payRun: (body: PayRunSimulationRequestBody) =>
     apiFetch<PayRunSimulationOut>("/simulation/pay-run", { method: "POST", body }),
+};
+
+// --- approval workflows ---
+
+export const approvalWorkflowsApi = {
+  list: (requestType: ApprovalRequestType) =>
+    apiFetch<ApprovalWorkflowStep[]>(`/approval-workflow-steps/${requestType}`),
+  replace: (requestType: ApprovalRequestType, steps: ApprovalWorkflowStepInput[]) =>
+    apiFetch<ApprovalWorkflowStep[]>(`/approval-workflow-steps/${requestType}`, {
+      method: "PUT",
+      body: steps,
+    }),
+};
+
+export const approvalInstancesApi = {
+  forRequest: (requestType: ApprovalRequestType, requestId: string) =>
+    apiFetch<ApprovalInstance | null>(`/approval-instances/${requestType}/${requestId}`),
+};
+
+// --- audit log ---
+
+export const auditLogApi = {
+  list: (params?: { entityType?: string; entityId?: string; action?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.entityType) query.set("entity_type", params.entityType);
+    if (params?.entityId) query.set("entity_id", params.entityId);
+    if (params?.action) query.set("action", params.action);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return apiFetch<AuditLogEntry[]>(`/audit-log${qs ? `?${qs}` : ""}`);
+  },
 };

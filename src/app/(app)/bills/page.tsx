@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
+import { ApprovalHistoryPanel } from "@/components/approval-history-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,16 +16,19 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
-import { billsApi, chartAccountsApi, vendorsApi } from "@/lib/api/endpoints";
+import { approvalInstancesApi, billsApi, chartAccountsApi, vendorsApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira, nairaToMinor } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
-import type { Bill } from "@/lib/types";
+import type { ApprovalInstance, Bill } from "@/lib/types";
 
 export default function BillsPage() {
   const bills = useApiResource(() => billsApi.list());
   const vendors = useApiResource(() => vendorsApi.list());
   const { showToast } = useToast();
   const [creating, setCreating] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [history, setHistory] = useState<Record<string, ApprovalInstance | null>>({});
+  const [loadingHistoryId, setLoadingHistoryId] = useState<string | null>(null);
 
   const vendorNameById = new Map((vendors.data ?? []).map((vendor) => [vendor.id, vendor.name]));
 
@@ -34,6 +38,28 @@ export default function BillsPage() {
       bills.reload();
     } catch (err) {
       showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    }
+  }
+
+  async function toggleHistory(billId: string) {
+    if (expandedId === billId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(billId);
+    if (history[billId] === undefined) {
+      setLoadingHistoryId(billId);
+      try {
+        const result = await approvalInstancesApi.forRequest("bill", billId);
+        setHistory((prev) => ({ ...prev, [billId]: result }));
+      } catch (err) {
+        showToast(
+          err instanceof ApiError ? String(err.detail ?? err.message) : "Failed to load history.",
+          "bad",
+        );
+      } finally {
+        setLoadingHistoryId(null);
+      }
     }
   }
 
@@ -70,52 +96,64 @@ export default function BillsPage() {
             </Thead>
             <tbody>
               {bills.data.map((bill) => (
-                <tr key={bill.id}>
-                  <Td className="font-bold">{bill.bill_number}</Td>
-                  <Td>{vendorNameById.get(bill.vendor_id) ?? "—"}</Td>
-                  <Td>{formatDate(bill.due_date)}</Td>
-                  <Td align="right">{formatNaira(bill.amount_minor)}</Td>
-                  <Td>
-                    <StatusBadge status={bill.status} />
-                  </Td>
-                  <Td align="right">
-                    <div className="flex justify-end gap-2">
-                      {bill.status === "draft" ? (
-                        <>
+                <Fragment key={bill.id}>
+                  <tr>
+                    <Td className="font-bold">{bill.bill_number}</Td>
+                    <Td>{vendorNameById.get(bill.vendor_id) ?? "—"}</Td>
+                    <Td>{formatDate(bill.due_date)}</Td>
+                    <Td align="right">{formatNaira(bill.amount_minor)}</Td>
+                    <Td>
+                      <StatusBadge status={bill.status} />
+                    </Td>
+                    <Td align="right">
+                      <div className="flex justify-end gap-2">
+                        {bill.status === "draft" ? (
+                          <>
+                            <ConfirmActionButton
+                              action={() => act(billsApi.approve, bill)}
+                              label="Approve"
+                              tone="primary"
+                              confirmTitle="Approve this bill?"
+                              confirmMessage={`This posts ${formatNaira(bill.amount_minor)} as an expense and a payable against "${vendorNameById.get(bill.vendor_id) ?? "this vendor"}".`}
+                              confirmLabel="Approve"
+                            />
+                            <ConfirmActionButton
+                              action={() => act(billsApi.void, bill)}
+                              label="Void"
+                              tone="danger"
+                              confirmTitle="Void this bill?"
+                              confirmMessage="This can't be undone."
+                              confirmLabel="Void"
+                            />
+                          </>
+                        ) : null}
+                        {bill.status === "approved" ? (
                           <ConfirmActionButton
-                            action={() => act(billsApi.approve, bill)}
-                            label="Approve"
+                            action={() => act(billsApi.pay, bill)}
+                            label="Mark Paid"
                             tone="primary"
-                            confirmTitle="Approve this bill?"
-                            confirmMessage={`This posts ${formatNaira(bill.amount_minor)} as an expense and a payable against "${vendorNameById.get(bill.vendor_id) ?? "this vendor"}".`}
-                            confirmLabel="Approve"
+                            confirmTitle="Mark this bill as paid?"
+                            confirmMessage={`This clears ${formatNaira(bill.amount_minor)} from accounts payable against cash.`}
+                            confirmLabel="Mark Paid"
                           />
-                          <ConfirmActionButton
-                            action={() => act(billsApi.void, bill)}
-                            label="Void"
-                            tone="danger"
-                            confirmTitle="Void this bill?"
-                            confirmMessage="This can't be undone."
-                            confirmLabel="Void"
-                          />
-                        </>
-                      ) : null}
-                      {bill.status === "approved" ? (
-                        <ConfirmActionButton
-                          action={() => act(billsApi.pay, bill)}
-                          label="Mark Paid"
-                          tone="primary"
-                          confirmTitle="Mark this bill as paid?"
-                          confirmMessage={`This clears ${formatNaira(bill.amount_minor)} from accounts payable against cash.`}
-                          confirmLabel="Mark Paid"
+                        ) : null}
+                        <Button size="md" variant="secondary" onClick={() => toggleHistory(bill.id)}>
+                          {expandedId === bill.id ? "Hide" : "History"}
+                        </Button>
+                      </div>
+                    </Td>
+                  </tr>
+                  {expandedId === bill.id ? (
+                    <tr>
+                      <td colSpan={6} className="border-b border-border bg-bg px-4 py-5">
+                        <ApprovalHistoryPanel
+                          loading={loadingHistoryId === bill.id}
+                          instance={history[bill.id]}
                         />
-                      ) : null}
-                      {bill.status === "paid" || bill.status === "void" ? (
-                        <span className="text-ink-soft">—</span>
-                      ) : null}
-                    </div>
-                  </Td>
-                </tr>
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
               ))}
             </tbody>
           </Table>
