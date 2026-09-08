@@ -749,6 +749,13 @@ export interface StatutoryLiability {
 
 // --- final settlement ---
 
+export interface FinalSettlementCreateBody {
+  termination_date: string;
+  gratuity_minor: number;
+  leave_days_paid_out: number;
+  leave_payout_minor: number;
+}
+
 export interface FinalSettlement {
   id: string;
   employee_id: string;

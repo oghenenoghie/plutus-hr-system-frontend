@@ -47,6 +47,7 @@ import type {
   EmployeeCreateBody,
   Expense,
   FinalSettlement,
+  FinalSettlementCreateBody,
   FixedAsset,
   FixedAssetCreateBody,
   FixedAssetDisposeBody,
@@ -537,6 +538,8 @@ export const statutoryLiabilitiesApi = {
 export const finalSettlementApi = {
   forEmployee: (employeeId: string) =>
     apiFetch<FinalSettlement[]>(`/final-settlements/${employeeId}`),
+  process: (employeeId: string, body: FinalSettlementCreateBody) =>
+    apiFetch<FinalSettlement>(`/final-settlements/${employeeId}`, { method: "POST", body }),
 };
 
 // --- simulation ---

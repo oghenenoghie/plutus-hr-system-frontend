@@ -442,6 +442,20 @@ export const MOCK_FIXTURES = {
       created_at: "2026-03-28T09:00:00Z",
     },
   ],
+  "/final-settlements/e1111111-0000-0000-0000-000000000004": [
+    {
+      id: "fs111111-0000-0000-0000-000000000001",
+      employee_id: "e1111111-0000-0000-0000-000000000004",
+      payslip_id: "pk111111-0000-0000-0000-000000000004",
+      termination_date: "2026-08-31",
+      leave_days_paid_out: 6,
+      leave_payout_minor: 60_000_00,
+      gratuity_minor: 300_000_00,
+      outstanding_loan_recovered_minor: 50_000_00,
+      net_settlement_minor: 310_000_00,
+      created_at: "2026-08-31T09:00:00Z",
+    },
+  ],
   "/contractors": [
     {
       id: "c1111111-0000-0000-0000-000000000001",
