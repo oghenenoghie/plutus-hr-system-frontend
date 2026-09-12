@@ -13,7 +13,7 @@ export default function LoginPage() {
   const { login, status, user } = useAuth();
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [orgId, setOrgId] = useState("");
@@ -32,7 +32,7 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const me = await login({ email, password, totpCode, orgId });
+      const me = await login({ identifier, password, totpCode, orgId });
       router.replace(homeForRole(me.role));
     } catch (err) {
       setError(err instanceof ApiError ? String(err.detail ?? err.message) : "Unable to sign in.");
@@ -52,15 +52,15 @@ export default function LoginPage() {
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="identifier">Email or Employee ID</Label>
             <Input
-              id="email"
-              type="email"
+              id="identifier"
+              type="text"
               autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="you@company.com or ABCD2345"
             />
           </div>
 
