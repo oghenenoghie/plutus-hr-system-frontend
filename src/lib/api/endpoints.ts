@@ -120,7 +120,7 @@ import type {
 // --- auth ---
 
 export const authApi = {
-  login: (body: { email: string; password: string; org_id?: string; totp_code?: string }) =>
+  login: (body: { identifier: string; password: string; org_id?: string; totp_code?: string }) =>
     apiFetch<TokenResponse>("/auth/login", { method: "POST", body, auth: false }),
   me: () => apiFetch<MeResponse>("/auth/me"),
   totpSetup: () => apiFetch<{ secret: string; provisioning_uri: string }>("/auth/totp/setup", { method: "POST" }),
