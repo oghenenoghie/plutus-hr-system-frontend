@@ -9,7 +9,7 @@ import { clearTokens, getAccessToken, setTokens } from "@/lib/auth/token-store";
 import type { MeResponse } from "@/lib/types";
 
 interface LoginParams {
-  email: string;
+  identifier: string;
   password: string;
   orgId?: string;
   totpCode?: string;
@@ -57,9 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async ({ email, password, orgId, totpCode }: LoginParams) => {
+    async ({ identifier, password, orgId, totpCode }: LoginParams) => {
       const tokens = await authApi.login({
-        email,
+        identifier,
         password,
         org_id: orgId || undefined,
         totp_code: totpCode || undefined,

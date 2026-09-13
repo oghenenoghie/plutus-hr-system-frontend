@@ -26,6 +26,8 @@ interface PayslipDerivationOutputs {
   cumulative_chargeable_income_minor: number;
   paye_minor: number;
   loan_deduction_minor: number;
+  benefit_deduction_minor: number;
+  union_dues_deduction_minor: number;
   net_pay_minor: number;
 }
 
@@ -255,6 +257,20 @@ export default function PayRunDetailPage({ params }: { params: Promise<{ id: str
                                       <DerivationRow
                                         label="Loan Deduction"
                                         value={outputs.loan_deduction_minor}
+                                        subtract
+                                      />
+                                    ) : null}
+                                    {outputs.benefit_deduction_minor > 0 ? (
+                                      <DerivationRow
+                                        label="Benefit Deduction"
+                                        value={outputs.benefit_deduction_minor}
+                                        subtract
+                                      />
+                                    ) : null}
+                                    {outputs.union_dues_deduction_minor > 0 ? (
+                                      <DerivationRow
+                                        label="Union Dues"
+                                        value={outputs.union_dues_deduction_minor}
                                         subtract
                                       />
                                     ) : null}

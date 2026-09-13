@@ -143,6 +143,12 @@ function EmployeeSimulation() {
             {result.loan_deduction_minor > 0 ? (
               <DerivationRow label="Loan Deduction" value={result.loan_deduction_minor} subtract />
             ) : null}
+            {result.benefit_deduction_minor > 0 ? (
+              <DerivationRow label="Benefit Deduction" value={result.benefit_deduction_minor} subtract />
+            ) : null}
+            {result.union_dues_deduction_minor > 0 ? (
+              <DerivationRow label="Union Dues" value={result.union_dues_deduction_minor} subtract />
+            ) : null}
             <div className="!mt-6 flex items-center justify-between border-t-2 border-primary pt-4">
               <span className="text-[13px] font-extrabold text-ink">Net Pay</span>
               <span className="text-[20px] font-extrabold text-primary">{formatNaira(result.net_pay_minor)}</span>

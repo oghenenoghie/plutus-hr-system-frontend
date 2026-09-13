@@ -11,6 +11,7 @@ export type EmploymentType =
   | "intern"
   | "consultant";
 export type LifecycleState = "active" | "suspended" | "terminated";
+export type LifecycleStage = "onboarding" | "active" | "suspended" | "terminated";
 export type PayRunStatus = "draft" | "processing" | "completed" | "failed" | "reversed";
 export type LeaveType = "annual" | "sick" | "maternity" | "paternity" | "unpaid";
 export type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
@@ -42,10 +43,12 @@ export interface Employee {
   org_id: string;
   account_id: string | null;
   employee_number: string;
+  login_code: string | null;
   full_name: string;
   state_of_residence: string;
   employment_type: EmploymentType;
   lifecycle_state: LifecycleState;
+  lifecycle_stage: LifecycleStage;
   date_of_joining: string;
   job_title: string | null;
   manager_id: string | null;
@@ -822,6 +825,8 @@ export interface SimulationOut {
   cumulative_chargeable_income_minor: number;
   paye_minor: number;
   loan_deduction_minor: number;
+  benefit_deduction_minor: number;
+  union_dues_deduction_minor: number;
   net_pay_minor: number;
 }
 
@@ -928,6 +933,8 @@ export interface VendorUpdateBody {
 
 export type BillStatus = "draft" | "approved" | "paid" | "void";
 
+export type WhtCategoryCode = "goods" | "services";
+
 export interface Bill {
   id: string;
   org_id: string;
@@ -937,6 +944,10 @@ export interface Bill {
   due_date: string;
   expense_account_code: string;
   amount_minor: number;
+  vat_minor: number;
+  wht_category: WhtCategoryCode | null;
+  wht_amount_minor: number;
+  net_payable_minor: number;
   description: string | null;
   status: BillStatus;
   paid_at: string | null;
@@ -950,6 +961,8 @@ export interface BillCreateBody {
   due_date: string;
   expense_account_code: string;
   amount_minor: number;
+  vat_minor?: number;
+  wht_category?: WhtCategoryCode | null;
   description?: string | null;
 }
 
@@ -1041,6 +1054,7 @@ export type FixedAssetStatus = "active" | "disposed";
 export interface FixedAsset {
   id: string;
   org_id: string;
+  department_id: string | null;
   name: string;
   asset_tag: string;
   acquisition_date: string;
@@ -1225,5 +1239,532 @@ export interface AuditLogEntry {
   entity_type: string;
   entity_id: string | null;
   event_metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+// --- employee history events ---
+
+export type EmployeeHistoryEventType = "status_change" | "compensation_change";
+
+export interface EmployeeHistoryEvent {
+  id: string;
+  employee_id: string;
+  event_type: EmployeeHistoryEventType;
+  effective_date: string;
+  detail: Record<string, unknown>;
+  recorded_by: string | null;
+  created_at: string;
+}
+
+// --- employee checklists ---
+
+export type ChecklistType = "onboarding" | "offboarding";
+export type ChecklistItemStatus = "pending" | "done";
+
+export interface ChecklistItem {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  checklist_type: ChecklistType;
+  title: string;
+  status: ChecklistItemStatus;
+  due_date: string | null;
+  completed_at: string | null;
+  completed_by: string | null;
+  created_at: string;
+}
+
+export interface ChecklistItemCreateBody {
+  checklist_type: ChecklistType;
+  title: string;
+  due_date?: string | null;
+}
+
+// --- probation periods ---
+
+export type ProbationStatus = "in_progress" | "confirmed" | "failed";
+
+export interface ProbationPeriod {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  start_date: string;
+  end_date: string;
+  status: ProbationStatus;
+  decided_date: string | null;
+  decided_by: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ProbationPeriodCreateBody {
+  start_date: string;
+  end_date: string;
+}
+
+export interface ProbationExtendBody {
+  new_end_date: string;
+  notes?: string | null;
+}
+
+export interface ProbationDecisionBody {
+  outcome: ProbationStatus;
+  notes?: string | null;
+}
+
+// --- employee documents ---
+
+export type DocumentCategory =
+  | "identification"
+  | "contract"
+  | "certificate"
+  | "offer_letter"
+  | "other";
+
+export interface EmployeeDocument {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  category: DocumentCategory;
+  title: string;
+  storage_url: string;
+  expiry_date: string | null;
+  uploaded_by: string | null;
+  created_at: string;
+}
+
+export interface EmployeeDocumentCreateBody {
+  category: DocumentCategory;
+  title: string;
+  storage_url: string;
+  expiry_date?: string | null;
+}
+
+export interface EmployeeDocumentUpdateBody {
+  category?: DocumentCategory;
+  title?: string;
+  expiry_date?: string | null;
+}
+
+// --- shift roster ---
+
+export interface ShiftRosterEntry {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  shift_id: string;
+  work_date: string;
+  created_at: string;
+}
+
+export interface ShiftRosterEntryCreateBody {
+  employee_id: string;
+  shift_id: string;
+  start_date: string;
+  end_date: string;
+}
+
+// --- attendance ---
+
+export interface AttendanceRecord {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  work_date: string;
+  clock_in_at: string | null;
+  clock_out_at: string | null;
+  created_at: string;
+}
+
+// --- aging / vendor statement reports ---
+
+export type AgingBucket = "current" | "1_30" | "31_60" | "61_90" | "over_90";
+
+export interface AgingLine {
+  entity_id: string;
+  counterparty_name: string;
+  reference_number: string;
+  due_date: string;
+  amount_minor: number;
+  bucket: AgingBucket;
+}
+
+export interface VendorStatementLine {
+  bill_id: string;
+  bill_number: string;
+  bill_date: string;
+  amount_minor: number;
+  status: BillStatus;
+  running_balance_minor: number;
+}
+
+// --- credit notes ---
+
+export interface CreditNoteCreateBody {
+  credit_note_number: string;
+  issue_date: string;
+  amount_minor: number;
+  reason: string;
+}
+
+export interface CreditNote {
+  id: string;
+  org_id: string;
+  invoice_id: string;
+  credit_note_number: string;
+  issue_date: string;
+  amount_minor: number;
+  reason: string;
+  created_at: string;
+}
+
+// --- ledger bank reconciliation (by chart-of-accounts code, org-wide) ---
+
+export interface LedgerStatementLineImport {
+  transaction_date: string;
+  description: string;
+  amount_minor: number;
+  external_reference?: string | null;
+}
+
+export interface LedgerStatementLine {
+  id: string;
+  org_id: string;
+  account_code: string;
+  transaction_date: string;
+  description: string;
+  amount_minor: number;
+  external_reference: string | null;
+  matched_ledger_entry_id: string | null;
+  matched_at: string | null;
+  matched_by: string | null;
+  created_at: string;
+}
+
+export interface LedgerReconciliationLedgerEntry {
+  id: string;
+  account: string;
+  debit_minor: number;
+  credit_minor: number;
+  description: string | null;
+  created_at: string;
+}
+
+export interface LedgerReconciliationStatus {
+  unmatched_statement_lines: LedgerStatementLine[];
+  unmatched_ledger_entries: LedgerReconciliationLedgerEntry[];
+}
+
+// --- fixed asset transfers / revaluations ---
+
+export interface FixedAssetTransferBody {
+  to_department_id: string | null;
+  transfer_date: string;
+  note?: string | null;
+}
+
+export interface FixedAssetTransfer {
+  id: string;
+  fixed_asset_id: string;
+  from_department_id: string | null;
+  to_department_id: string | null;
+  transfer_date: string;
+  note: string | null;
+  created_at: string;
+}
+
+export interface FixedAssetRevalueBody {
+  new_value_minor: number;
+  revaluation_date: string;
+  reason: string;
+}
+
+export interface FixedAssetRevaluation {
+  id: string;
+  fixed_asset_id: string;
+  revaluation_date: string;
+  old_book_value_minor: number;
+  new_book_value_minor: number;
+  reason: string;
+  created_at: string;
+}
+
+// --- recurring bills / invoices ---
+
+export type RecurrenceFrequency = "monthly" | "quarterly" | "annually";
+
+export interface RecurringBillCreateBody {
+  vendor_id: string;
+  bill_number_prefix: string;
+  expense_account_code: string;
+  amount_minor: number;
+  frequency: RecurrenceFrequency;
+  next_run_date: string;
+  vat_minor?: number;
+  wht_category?: WhtCategoryCode | null;
+  description?: string | null;
+  due_in_days?: number;
+}
+
+export interface RecurringBill {
+  id: string;
+  org_id: string;
+  vendor_id: string;
+  bill_number_prefix: string;
+  expense_account_code: string;
+  amount_minor: number;
+  vat_minor: number;
+  wht_category: WhtCategoryCode | null;
+  description: string | null;
+  due_in_days: number;
+  frequency: RecurrenceFrequency;
+  next_run_date: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface RecurringInvoiceCreateBody {
+  customer_id: string;
+  invoice_number_prefix: string;
+  revenue_account_code: string;
+  amount_minor: number;
+  frequency: RecurrenceFrequency;
+  next_run_date: string;
+  description?: string | null;
+  due_in_days?: number;
+}
+
+export interface RecurringInvoice {
+  id: string;
+  org_id: string;
+  customer_id: string;
+  invoice_number_prefix: string;
+  revenue_account_code: string;
+  amount_minor: number;
+  description: string | null;
+  due_in_days: number;
+  frequency: RecurrenceFrequency;
+  next_run_date: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+// --- payroll reports ---
+
+export interface PayrollRegisterLine {
+  employee_id: string;
+  employee_number: string;
+  full_name: string;
+  gross_minor: number;
+  pension_employee_minor: number;
+  pension_employer_minor: number;
+  nhf_minor: number;
+  paye_minor: number;
+  loan_deduction_minor: number;
+  benefit_deduction_minor: number;
+  union_dues_deduction_minor: number;
+  net_minor: number;
+}
+
+export interface PayeByStateLine {
+  state_of_residence: string;
+  employee_count: number;
+  total_paye_minor: number;
+}
+
+export interface AnnualTaxReconciliationLine {
+  employee_id: string;
+  employee_number: string;
+  full_name: string;
+  tin: string | null;
+  tax_year: number;
+  total_gross_minor: number;
+  total_pension_employee_minor: number;
+  total_nhf_minor: number;
+  total_paye_minor: number;
+  payslip_count: number;
+}
+
+// --- document generation ---
+
+export type DocumentType =
+  | "offer_letter"
+  | "confirmation_letter"
+  | "employment_contract"
+  | "salary_certificate"
+  | "other";
+
+export interface DocumentTemplateCreateBody {
+  document_type: DocumentType;
+  name: string;
+  body_template: string;
+}
+
+export interface DocumentTemplate {
+  id: string;
+  org_id: string;
+  document_type: DocumentType;
+  name: string;
+  body_template: string;
+  created_at: string;
+}
+
+export type GeneratedDocumentStatus = "draft" | "sent_for_signature" | "signed";
+
+export interface GenerateDocumentRequestBody {
+  template_id: string;
+  extra_context?: Record<string, string>;
+}
+
+export interface SignDocumentBody {
+  signed_by_name: string;
+}
+
+export interface GeneratedDocument {
+  id: string;
+  org_id: string;
+  template_id: string;
+  employee_id: string;
+  document_type: DocumentType;
+  rendered_content: string;
+  status: GeneratedDocumentStatus;
+  sent_at: string | null;
+  signed_at: string | null;
+  signed_by_name: string | null;
+  created_at: string;
+}
+
+// --- reminders ---
+
+export interface RemindersSummary {
+  deadline_count: number;
+  stale_approval_count: number;
+  notifications_created: number;
+}
+
+// --- fine-grained permissions ---
+
+export type Permission =
+  | "employees.view"
+  | "employees.manage"
+  | "payroll.run"
+  | "payroll.approve"
+  | "accounting.manage"
+  | "recruitment.manage"
+  | "performance.manage"
+  | "reports.view"
+  | "settings.manage";
+
+export interface MembershipOut {
+  id: string;
+  account_id: string;
+  email: string;
+  role: Role;
+  created_at: string;
+}
+
+export interface EffectivePermissions {
+  membership_id: string;
+  role: string;
+  permissions: Permission[];
+}
+
+export interface PermissionOverrideBody {
+  permission: Permission;
+  granted: boolean;
+}
+
+// --- subscription / usage ---
+
+export type PlanCode = "free" | "starter" | "professional" | "enterprise";
+export type SubscriptionStatus = "active" | "past_due" | "canceled";
+
+export interface Subscription {
+  id: string;
+  org_id: string;
+  plan_code: PlanCode;
+  status: SubscriptionStatus;
+  current_period_end: string;
+  created_at: string;
+}
+
+export interface UsageSummary {
+  plan_code: PlanCode;
+  plan_name: string;
+  employee_count: number;
+  employee_limit: number | null;
+  over_limit: boolean;
+  monthly_price_minor: number;
+}
+
+export interface ChangePlanBody {
+  plan_code: PlanCode;
+}
+
+// --- quizzes ---
+
+export interface QuizCreateBody {
+  title: string;
+  passing_score?: number;
+}
+
+export interface Quiz {
+  id: string;
+  org_id: string;
+  course_id: string;
+  title: string;
+  passing_score: number;
+  created_at: string;
+}
+
+export interface QuizQuestionCreateBody {
+  question_text: string;
+  options: string[];
+  correct_option_index: number;
+}
+
+export interface QuizQuestion {
+  id: string;
+  quiz_id: string;
+  question_text: string;
+  options: string[];
+  correct_option_index: number;
+  created_at: string;
+}
+
+export interface QuizQuestionForAttempt {
+  id: string;
+  question_text: string;
+  options: string[];
+}
+
+export interface QuizAttemptSubmitBody {
+  answers: number[];
+}
+
+export interface QuizAttempt {
+  id: string;
+  quiz_id: string;
+  employee_id: string;
+  enrollment_id: string;
+  answers: number[];
+  score: number;
+  passed: boolean;
+  created_at: string;
+}
+
+// --- training course attachments ---
+
+export interface TrainingCourseAttachmentCreateBody {
+  title: string;
+  storage_url: string;
+}
+
+export interface TrainingCourseAttachment {
+  id: string;
+  org_id: string;
+  course_id: string;
+  title: string;
+  storage_url: string;
   created_at: string;
 }

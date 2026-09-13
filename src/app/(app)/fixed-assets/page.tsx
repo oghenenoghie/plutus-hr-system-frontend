@@ -10,23 +10,38 @@ import { ConfirmActionButton } from "@/components/ui/confirm-action-button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
 import { Drawer } from "@/components/ui/drawer";
 import { Input, Label } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
-import { fixedAssetsApi } from "@/lib/api/endpoints";
+import { departmentsApi, fixedAssetOpsApi, fixedAssetsApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira, nairaToMinor } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 import type { FixedAsset } from "@/lib/types";
 
 export default function FixedAssetsPage() {
   const assets = useApiResource(() => fixedAssetsApi.list());
+  const departments = useApiResource(() => departmentsApi.list());
+  const departmentsById = new Map((departments.data ?? []).map((department) => [department.id, department]));
   const { showToast } = useToast();
   const [creating, setCreating] = useState(false);
   const [disposing, setDisposing] = useState<FixedAsset | null>(null);
+  const [transferring, setTransferring] = useState<FixedAsset | null>(null);
+  const [revaluing, setRevaluing] = useState<FixedAsset | null>(null);
 
   async function depreciate(asset: FixedAsset) {
     try {
       await fixedAssetsApi.depreciate(asset.id);
+      assets.reload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    }
+  }
+
+  async function batchDepreciate() {
+    try {
+      const updated = await fixedAssetOpsApi.batchDepreciate();
+      showToast(`Depreciated ${updated.length} asset(s)`, "good");
       assets.reload();
     } catch (err) {
       showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
@@ -38,7 +53,19 @@ export default function FixedAssetsPage() {
       <PageHeader
         title="Fixed Assets"
         subtitle="Depreciable company property — cost, accumulated depreciation, and book value"
-        action={<Button onClick={() => setCreating(true)}>New Fixed Asset</Button>}
+        action={
+          <div className="flex gap-3">
+            <ConfirmActionButton
+              action={batchDepreciate}
+              label="Run Batch Depreciation"
+              tone="primary"
+              confirmTitle="Run batch depreciation for all active assets?"
+              confirmMessage="Posts one period of straight-line depreciation for every active fixed asset in this org."
+              confirmLabel="Run"
+            />
+            <Button onClick={() => setCreating(true)}>New Fixed Asset</Button>
+          </div>
+        }
       />
 
       <Card>
@@ -53,6 +80,7 @@ export default function FixedAssetsPage() {
               <tr>
                 <Th>Tag</Th>
                 <Th>Name</Th>
+                <Th>Department</Th>
                 <Th>Acquired</Th>
                 <Th align="right">Cost</Th>
                 <Th align="right">Accum. Depreciation</Th>
@@ -66,6 +94,9 @@ export default function FixedAssetsPage() {
                 <tr key={asset.id}>
                   <Td className="font-mono text-[12px]">{asset.asset_tag}</Td>
                   <Td className="font-bold">{asset.name}</Td>
+                  <Td>
+                    {asset.department_id ? (departmentsById.get(asset.department_id)?.name ?? "—") : "—"}
+                  </Td>
                   <Td>{formatDate(asset.acquisition_date)}</Td>
                   <Td align="right">{formatNaira(asset.cost_minor)}</Td>
                   <Td align="right">{formatNaira(asset.accumulated_depreciation_minor)}</Td>
@@ -77,7 +108,13 @@ export default function FixedAssetsPage() {
                   </Td>
                   <Td align="right">
                     {asset.status === "active" ? (
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button size="md" variant="secondary" onClick={() => setTransferring(asset)}>
+                          Transfer
+                        </Button>
+                        <Button size="md" variant="secondary" onClick={() => setRevaluing(asset)}>
+                          Revalue
+                        </Button>
                         <ConfirmActionButton
                           action={() => depreciate(asset)}
                           label="Depreciate"
@@ -121,7 +158,179 @@ export default function FixedAssetsPage() {
           }}
         />
       ) : null}
+
+      {transferring ? (
+        <TransferFixedAssetDrawer
+          asset={transferring}
+          onClose={() => setTransferring(null)}
+          onTransferred={() => {
+            setTransferring(null);
+            assets.reload();
+          }}
+        />
+      ) : null}
+
+      {revaluing ? (
+        <RevalueFixedAssetDrawer
+          asset={revaluing}
+          onClose={() => setRevaluing(null)}
+          onRevalued={() => {
+            setRevaluing(null);
+            assets.reload();
+          }}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function TransferFixedAssetDrawer({
+  asset,
+  onClose,
+  onTransferred,
+}: {
+  asset: FixedAsset;
+  onClose: () => void;
+  onTransferred: () => void;
+}) {
+  const { showToast } = useToast();
+  const departments = useApiResource(() => departmentsApi.list());
+  const [toDepartmentId, setToDepartmentId] = useState("");
+  const [transferDate, setTransferDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      await fixedAssetOpsApi.transfer(asset.id, {
+        to_department_id: toDepartmentId || null,
+        transfer_date: transferDate,
+        note: note || null,
+      });
+      showToast("Asset transferred", "good");
+      onTransferred();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Drawer title={`Transfer ${asset.name}`} onClose={onClose}>
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
+        <div>
+          <Label htmlFor="toDepartment">To Department</Label>
+          <Select id="toDepartment" value={toDepartmentId} onChange={(event) => setToDepartmentId(event.target.value)}>
+            <option value="">No department</option>
+            {(departments.data ?? []).map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="transferDate">Transfer Date</Label>
+          <Input
+            id="transferDate"
+            type="date"
+            value={transferDate}
+            onChange={(event) => setTransferDate(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="note">Note</Label>
+          <Input id="note" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional" />
+        </div>
+        <div className="mt-auto flex justify-end gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Transferring…" : "Transfer"}
+          </Button>
+        </div>
+      </form>
+    </Drawer>
+  );
+}
+
+function RevalueFixedAssetDrawer({
+  asset,
+  onClose,
+  onRevalued,
+}: {
+  asset: FixedAsset;
+  onClose: () => void;
+  onRevalued: () => void;
+}) {
+  const { showToast } = useToast();
+  const [newValue, setNewValue] = useState("");
+  const [revaluationDate, setRevaluationDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      await fixedAssetOpsApi.revalue(asset.id, {
+        new_value_minor: nairaToMinor(newValue),
+        revaluation_date: revaluationDate,
+        reason,
+      });
+      showToast("Asset revalued", "good");
+      onRevalued();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Drawer title={`Revalue ${asset.name}`} onClose={onClose}>
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
+        <p className="text-[13px] text-ink-soft">
+          Current book value: <span className="font-bold text-ink">{formatNaira(asset.book_value_minor)}</span>.
+          Resets accumulated depreciation and posts the difference to a revaluation surplus/loss account.
+        </p>
+        <div>
+          <Label htmlFor="newValue">New Book Value (₦)</Label>
+          <Input
+            id="newValue"
+            value={newValue}
+            onChange={(event) => setNewValue(event.target.value)}
+            inputMode="decimal"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="revaluationDate">Revaluation Date</Label>
+          <Input
+            id="revaluationDate"
+            type="date"
+            value={revaluationDate}
+            onChange={(event) => setRevaluationDate(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="reason">Reason</Label>
+          <Input id="reason" value={reason} onChange={(event) => setReason(event.target.value)} required />
+        </div>
+        <div className="mt-auto flex justify-end gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Revaluing…" : "Revalue"}
+          </Button>
+        </div>
+      </form>
+    </Drawer>
   );
 }
 

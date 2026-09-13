@@ -1,5 +1,7 @@
 import { apiFetch, downloadAuthenticatedFile } from "@/lib/api/client";
 import type {
+  AgingLine,
+  AnnualTaxReconciliationLine,
   ApiKey,
   ApiKeyCreateBody,
   ApiKeyCreated,
@@ -10,6 +12,7 @@ import type {
   AssetAssignment,
   AssetAssignmentCreateBody,
   AssetAssignmentReturnBody,
+  AttendanceRecord,
   AuditLogEntry,
   BalanceSheet,
   BankAccount,
@@ -30,9 +33,12 @@ import type {
   Candidate,
   CandidateCreateBody,
   CandidateUpdateBody,
+  ChangePlanBody,
   ChartAccount,
   ChartAccountCreateBody,
   ChartAccountUpdateBody,
+  ChecklistItem,
+  ChecklistItemCreateBody,
   CompanyAsset,
   CompanyAssetCreateBody,
   CompanyAssetUpdateBody,
@@ -40,6 +46,8 @@ import type {
   CompanyBankAccountCreateBody,
   Contractor,
   ContractorCreateBody,
+  CreditNote,
+  CreditNoteCreateBody,
   Customer,
   CustomerCreateBody,
   CustomerUpdateBody,
@@ -51,14 +59,25 @@ import type {
   DisciplinaryCaseCreateBody,
   DisciplinaryCaseResolveBody,
   DisciplinaryCaseUpdateBody,
+  DocumentTemplate,
+  DocumentTemplateCreateBody,
+  EffectivePermissions,
   Employee,
   EmployeeCreateBody,
+  EmployeeDocument,
+  EmployeeDocumentCreateBody,
+  EmployeeDocumentUpdateBody,
+  EmployeeHistoryEvent,
   Expense,
   FinalSettlement,
   FinalSettlementCreateBody,
   FixedAsset,
   FixedAssetCreateBody,
   FixedAssetDisposeBody,
+  FixedAssetRevalueBody,
+  FixedAssetTransferBody,
+  GeneratedDocument,
+  GenerateDocumentRequestBody,
   IncomeStatement,
   Invoice,
   InvoiceCreateBody,
@@ -72,8 +91,12 @@ import type {
   LeaveBalance,
   LeaveRequest,
   LedgerEntry,
+  LedgerReconciliationStatus,
+  LedgerStatementLine,
+  LedgerStatementLineImport,
   Loan,
   MeResponse,
+  MembershipOut,
   Notification,
   NotificationBroadcastBody,
   NotificationUnreadCount,
@@ -82,24 +105,49 @@ import type {
   PayRunCreateBody,
   PayRunSimulationOut,
   PayRunSimulationRequestBody,
+  PayeByStateLine,
+  PayrollRegisterLine,
   Payslip,
   PayslipDelivery,
   PerformanceReview,
   PerformanceReviewAcknowledgeBody,
   PerformanceReviewCreateBody,
   PerformanceReviewSubmitBody,
+  PermissionOverrideBody,
   Policy,
   PolicyCreateBody,
   PolicyUpdateBody,
+  ProbationDecisionBody,
+  ProbationExtendBody,
+  ProbationPeriod,
+  ProbationPeriodCreateBody,
+  Quiz,
+  QuizAttempt,
+  QuizAttemptSubmitBody,
+  QuizCreateBody,
+  QuizQuestion,
+  QuizQuestionCreateBody,
+  QuizQuestionForAttempt,
   ReconciliationSummary,
+  RecurringBill,
+  RecurringBillCreateBody,
+  RecurringInvoice,
+  RecurringInvoiceCreateBody,
+  RemindersSummary,
   Shift,
   ShiftCreateBody,
+  ShiftRosterEntry,
+  ShiftRosterEntryCreateBody,
   ShiftUpdateBody,
+  SignDocumentBody,
   SimulationOut,
   SimulationRequestBody,
   StatutoryLiability,
+  Subscription,
   TokenResponse,
   TrainingCourse,
+  TrainingCourseAttachment,
+  TrainingCourseAttachmentCreateBody,
   TrainingCourseCreateBody,
   TrainingCourseUpdateBody,
   TrainingEnrollment,
@@ -110,9 +158,11 @@ import type {
   UnionMembershipCreateBody,
   UnionMembershipTerminateBody,
   UnionMembershipUpdateBody,
+  UsageSummary,
   Vendor,
   VendorCreateBody,
   VendorUpdateBody,
+  VendorStatementLine,
   WhtPayment,
   WhtPaymentCreateBody,
 } from "@/lib/types";
@@ -120,7 +170,7 @@ import type {
 // --- auth ---
 
 export const authApi = {
-  login: (body: { email: string; password: string; org_id?: string; totp_code?: string }) =>
+  login: (body: { identifier: string; password: string; org_id?: string; totp_code?: string }) =>
     apiFetch<TokenResponse>("/auth/login", { method: "POST", body, auth: false }),
   me: () => apiFetch<MeResponse>("/auth/me"),
   totpSetup: () => apiFetch<{ secret: string; provisioning_uri: string }>("/auth/totp/setup", { method: "POST" }),
@@ -153,6 +203,7 @@ export const employeesApi = {
       method: "PATCH",
       body: { salary_masked: salaryMasked },
     }),
+  history: (id: string) => apiFetch<EmployeeHistoryEvent[]>(`/employees/${id}/history`),
 };
 
 // --- departments ---
@@ -606,4 +657,300 @@ export const auditLogApi = {
     const qs = query.toString();
     return apiFetch<AuditLogEntry[]>(`/audit-log${qs ? `?${qs}` : ""}`);
   },
+};
+
+// --- employee checklists (onboarding / offboarding) ---
+
+export const employeeChecklistsApi = {
+  forEmployee: (employeeId: string) =>
+    apiFetch<ChecklistItem[]>(`/employees/${employeeId}/checklist-items`),
+  create: (employeeId: string, body: ChecklistItemCreateBody) =>
+    apiFetch<ChecklistItem>(`/employees/${employeeId}/checklist-items`, { method: "POST", body }),
+  complete: (itemId: string) =>
+    apiFetch<ChecklistItem>(`/employees/checklist-items/${itemId}/complete`, {
+      method: "POST",
+      body: {},
+    }),
+};
+
+// --- probation periods ---
+
+export const probationApi = {
+  forEmployee: (employeeId: string) =>
+    apiFetch<ProbationPeriod[]>(`/employees/${employeeId}/probation-periods`),
+  create: (employeeId: string, body: ProbationPeriodCreateBody) =>
+    apiFetch<ProbationPeriod>(`/employees/${employeeId}/probation-periods`, {
+      method: "POST",
+      body,
+    }),
+  extend: (periodId: string, body: ProbationExtendBody) =>
+    apiFetch<ProbationPeriod>(`/probation-periods/${periodId}/extend`, { method: "POST", body }),
+  decide: (periodId: string, body: ProbationDecisionBody) =>
+    apiFetch<ProbationPeriod>(`/probation-periods/${periodId}/decide`, { method: "POST", body }),
+};
+
+// --- employee documents ---
+
+export const employeeDocumentsApi = {
+  forEmployee: (employeeId: string) =>
+    apiFetch<EmployeeDocument[]>(`/employees/${employeeId}/documents`),
+  mine: () => apiFetch<EmployeeDocument[]>("/employees/documents/me"),
+  create: (employeeId: string, body: EmployeeDocumentCreateBody) =>
+    apiFetch<EmployeeDocument>(`/employees/${employeeId}/documents`, { method: "POST", body }),
+  update: (documentId: string, body: EmployeeDocumentUpdateBody) =>
+    apiFetch<EmployeeDocument>(`/employees/documents/${documentId}`, { method: "PATCH", body }),
+};
+
+// --- shift roster ---
+
+export const shiftRosterApi = {
+  forEmployee: (employeeId: string, params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams({ employee_id: employeeId });
+    if (params?.startDate) query.set("start_date", params.startDate);
+    if (params?.endDate) query.set("end_date", params.endDate);
+    return apiFetch<ShiftRosterEntry[]>(`/shift-roster?${query.toString()}`);
+  },
+  mine: (params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set("start_date", params.startDate);
+    if (params?.endDate) query.set("end_date", params.endDate);
+    const qs = query.toString();
+    return apiFetch<ShiftRosterEntry[]>(`/shift-roster/me${qs ? `?${qs}` : ""}`);
+  },
+  create: (body: ShiftRosterEntryCreateBody) =>
+    apiFetch<ShiftRosterEntry[]>("/shift-roster", { method: "POST", body }),
+};
+
+// --- attendance ---
+
+export const attendanceApi = {
+  clockIn: () => apiFetch<AttendanceRecord>("/attendance/clock-in", { method: "POST", body: {} }),
+  clockOut: () => apiFetch<AttendanceRecord>("/attendance/clock-out", { method: "POST", body: {} }),
+  mine: (params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set("start_date", params.startDate);
+    if (params?.endDate) query.set("end_date", params.endDate);
+    const qs = query.toString();
+    return apiFetch<AttendanceRecord[]>(`/attendance/me${qs ? `?${qs}` : ""}`);
+  },
+  forEmployee: (employeeId: string, params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set("start_date", params.startDate);
+    if (params?.endDate) query.set("end_date", params.endDate);
+    const qs = query.toString();
+    return apiFetch<AttendanceRecord[]>(`/attendance/employees/${employeeId}${qs ? `?${qs}` : ""}`);
+  },
+};
+
+// --- aging / vendor statement reports ---
+
+export const agingReportsApi = {
+  apAging: (asOf?: string) => apiFetch<AgingLine[]>(`/reports/ap-aging${asOf ? `?as_of=${asOf}` : ""}`),
+  arAging: (asOf?: string) => apiFetch<AgingLine[]>(`/reports/ar-aging${asOf ? `?as_of=${asOf}` : ""}`),
+  vendorStatement: (vendorId: string, params?: { fromDate?: string; toDate?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.fromDate) query.set("from_date", params.fromDate);
+    if (params?.toDate) query.set("to_date", params.toDate);
+    const qs = query.toString();
+    return apiFetch<VendorStatementLine[]>(`/reports/vendors/${vendorId}/statement${qs ? `?${qs}` : ""}`);
+  },
+};
+
+// --- credit notes ---
+
+export const creditNotesApi = {
+  forInvoice: (invoiceId: string) => apiFetch<CreditNote[]>(`/invoices/${invoiceId}/credit-notes`),
+  create: (invoiceId: string, body: CreditNoteCreateBody) =>
+    apiFetch<CreditNote>(`/invoices/${invoiceId}/credit-notes`, { method: "POST", body }),
+};
+
+// --- ledger bank reconciliation (org-wide, by chart-of-accounts code) ---
+
+export const ledgerReconciliationApi = {
+  importLines: (accountCode: string, lines: LedgerStatementLineImport[]) =>
+    apiFetch<LedgerStatementLine[]>("/bank-reconciliation/statement-lines", {
+      method: "POST",
+      body: { account_code: accountCode, lines },
+    }),
+  match: (lineId: string, ledgerEntryId: string) =>
+    apiFetch<LedgerStatementLine>(`/bank-reconciliation/statement-lines/${lineId}/match`, {
+      method: "POST",
+      body: { ledger_entry_id: ledgerEntryId },
+    }),
+  unmatch: (lineId: string) =>
+    apiFetch<LedgerStatementLine>(`/bank-reconciliation/statement-lines/${lineId}/unmatch`, {
+      method: "POST",
+      body: {},
+    }),
+  status: (accountCode: string) =>
+    apiFetch<LedgerReconciliationStatus>(
+      `/bank-reconciliation/status?account_code=${encodeURIComponent(accountCode)}`,
+    ),
+};
+
+// --- fixed asset transfers / revaluations / batch depreciation ---
+
+export const fixedAssetOpsApi = {
+  transfer: (id: string, body: FixedAssetTransferBody) =>
+    apiFetch<FixedAsset>(`/fixed-assets/${id}/transfer`, { method: "POST", body }),
+  revalue: (id: string, body: FixedAssetRevalueBody) =>
+    apiFetch<FixedAsset>(`/fixed-assets/${id}/revalue`, { method: "POST", body }),
+  batchDepreciate: () =>
+    apiFetch<FixedAsset[]>("/fixed-assets/batch-depreciation", { method: "POST", body: {} }),
+};
+
+// --- recurring bills / invoices ---
+
+export const recurringBillsApi = {
+  list: () => apiFetch<RecurringBill[]>("/recurring-bills"),
+  create: (body: RecurringBillCreateBody) =>
+    apiFetch<RecurringBill>("/recurring-bills", { method: "POST", body }),
+  setActive: (id: string, isActive: boolean) =>
+    apiFetch<RecurringBill>(`/recurring-bills/${id}`, {
+      method: "PATCH",
+      body: { is_active: isActive },
+    }),
+  generateDue: (asOf?: string) =>
+    apiFetch<Bill[]>(`/recurring-bills/generate-due${asOf ? `?as_of=${asOf}` : ""}`, {
+      method: "POST",
+      body: {},
+    }),
+};
+
+export const recurringInvoicesApi = {
+  list: () => apiFetch<RecurringInvoice[]>("/recurring-invoices"),
+  create: (body: RecurringInvoiceCreateBody) =>
+    apiFetch<RecurringInvoice>("/recurring-invoices", { method: "POST", body }),
+  setActive: (id: string, isActive: boolean) =>
+    apiFetch<RecurringInvoice>(`/recurring-invoices/${id}`, {
+      method: "PATCH",
+      body: { is_active: isActive },
+    }),
+  generateDue: (asOf?: string) =>
+    apiFetch<Invoice[]>(`/recurring-invoices/generate-due${asOf ? `?as_of=${asOf}` : ""}`, {
+      method: "POST",
+      body: {},
+    }),
+};
+
+// --- payroll reports ---
+
+export const payrollReportsApi = {
+  register: (payRunId: string) =>
+    apiFetch<PayrollRegisterLine[]>(`/reports/payroll-register/${payRunId}`),
+  payeByState: (params?: { fromDate?: string; toDate?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.fromDate) query.set("from_date", params.fromDate);
+    if (params?.toDate) query.set("to_date", params.toDate);
+    const qs = query.toString();
+    return apiFetch<PayeByStateLine[]>(`/reports/paye-by-state${qs ? `?${qs}` : ""}`);
+  },
+  annualTaxReconciliation: (taxYear: number) =>
+    apiFetch<AnnualTaxReconciliationLine[]>(`/reports/annual-tax-reconciliation?tax_year=${taxYear}`),
+  downloadTaxCertificate: (employeeId: string, taxYear: number, filename: string) =>
+    downloadAuthenticatedFile(
+      `/reports/annual-tax-reconciliation/${employeeId}/certificate?tax_year=${taxYear}`,
+      filename,
+    ),
+};
+
+// --- document generation ---
+
+export const documentTemplatesApi = {
+  list: () => apiFetch<DocumentTemplate[]>("/document-templates"),
+  create: (body: DocumentTemplateCreateBody) =>
+    apiFetch<DocumentTemplate>("/document-templates", { method: "POST", body }),
+};
+
+export const generatedDocumentsApi = {
+  forEmployee: (employeeId: string) =>
+    apiFetch<GeneratedDocument[]>(`/employees/${employeeId}/generated-documents`),
+  mine: () => apiFetch<GeneratedDocument[]>("/generated-documents/me"),
+  generate: (employeeId: string, body: GenerateDocumentRequestBody) =>
+    apiFetch<GeneratedDocument>(`/employees/${employeeId}/generated-documents`, {
+      method: "POST",
+      body,
+    }),
+  send: (documentId: string) =>
+    apiFetch<GeneratedDocument>(`/generated-documents/${documentId}/send`, {
+      method: "POST",
+      body: {},
+    }),
+  sign: (documentId: string, body: SignDocumentBody) =>
+    apiFetch<GeneratedDocument>(`/generated-documents/${documentId}/sign`, { method: "POST", body }),
+  downloadPdf: (documentId: string, filename: string) =>
+    downloadAuthenticatedFile(`/generated-documents/${documentId}/pdf`, filename),
+};
+
+// --- reminders ---
+
+export const remindersApi = {
+  run: (params?: { asOf?: string; staleAfterDays?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.asOf) query.set("as_of", params.asOf);
+    if (params?.staleAfterDays !== undefined) {
+      query.set("stale_after_days", String(params.staleAfterDays));
+    }
+    const qs = query.toString();
+    return apiFetch<RemindersSummary>(`/reminders/run${qs ? `?${qs}` : ""}`, {
+      method: "POST",
+      body: {},
+    });
+  },
+};
+
+// --- fine-grained permissions ---
+
+export const membershipsApi = {
+  list: () => apiFetch<MembershipOut[]>("/memberships"),
+  effectivePermissions: (membershipId: string) =>
+    apiFetch<EffectivePermissions>(`/memberships/${membershipId}/permissions`),
+  setOverride: (membershipId: string, body: PermissionOverrideBody) =>
+    apiFetch<EffectivePermissions>(`/memberships/${membershipId}/permissions/override`, {
+      method: "PUT",
+      body,
+    }),
+  clearOverride: (membershipId: string, permission: string) =>
+    apiFetch<EffectivePermissions>(
+      `/memberships/${membershipId}/permissions/override/${permission}`,
+      { method: "DELETE" },
+    ),
+};
+
+// --- subscription / usage ---
+
+export const subscriptionApi = {
+  get: () => apiFetch<Subscription>("/subscription"),
+  usage: () => apiFetch<UsageSummary>("/subscription/usage"),
+  changePlan: (body: ChangePlanBody) =>
+    apiFetch<Subscription>("/subscription/change-plan", { method: "POST", body }),
+  cancel: () => apiFetch<Subscription>("/subscription/cancel", { method: "POST", body: {} }),
+};
+
+// --- quizzes ---
+
+export const quizzesApi = {
+  forCourse: (courseId: string) => apiFetch<Quiz[]>(`/training-courses/${courseId}/quizzes`),
+  create: (courseId: string, body: QuizCreateBody) =>
+    apiFetch<Quiz>(`/training-courses/${courseId}/quizzes`, { method: "POST", body }),
+  questions: (quizId: string) => apiFetch<QuizQuestion[]>(`/quizzes/${quizId}/questions`),
+  addQuestion: (quizId: string, body: QuizQuestionCreateBody) =>
+    apiFetch<QuizQuestion>(`/quizzes/${quizId}/questions`, { method: "POST", body }),
+  questionsForAttempt: (quizId: string) =>
+    apiFetch<QuizQuestionForAttempt[]>(`/quizzes/${quizId}/questions/for-attempt`),
+  submitAttempt: (quizId: string, body: QuizAttemptSubmitBody) =>
+    apiFetch<QuizAttempt>(`/quizzes/${quizId}/attempts`, { method: "POST", body }),
+  attempts: (quizId: string) => apiFetch<QuizAttempt[]>(`/quizzes/${quizId}/attempts`),
+};
+
+// --- training course attachments ---
+
+export const trainingCourseAttachmentsApi = {
+  forCourse: (courseId: string) =>
+    apiFetch<TrainingCourseAttachment[]>(`/training-courses/${courseId}/attachments`),
+  create: (courseId: string, body: TrainingCourseAttachmentCreateBody) =>
+    apiFetch<TrainingCourseAttachment>(`/training-courses/${courseId}/attachments`, {
+      method: "POST",
+      body,
+    }),
 };
