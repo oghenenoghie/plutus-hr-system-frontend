@@ -82,7 +82,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/loans", label: "Loans & Advances", icon: "loans", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/benefits", label: "Benefits", icon: "benefits", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/contractors", label: "Contractors", icon: "contractors", roles: ["admin", "payroll_manager"] },
-  { href: "/reports", label: "Statutory Reports", icon: "reports", roles: ["admin", "payroll_manager"] },
+  { href: "/reports", label: "Financial Reports", icon: "reports", roles: ["admin", "payroll_manager"] },
   { href: "/settlement", label: "Final Settlement", icon: "settlement", roles: ["admin", "payroll_manager"] },
   { href: "/simulation", label: "Simulation", icon: "simulation", roles: ["admin", "payroll_manager"] },
   { href: "/integrations", label: "Integrations", icon: "integrations", roles: ["admin"] },
