@@ -8,7 +8,7 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
-import { Textarea } from "@/components/ui/input";
+import { Input, Label, Textarea } from "@/components/ui/input";
 import { KpiTile } from "@/components/ui/kpi-tile";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
@@ -19,6 +19,7 @@ import {
   companyAssetsApi,
   employeesApi,
   expensesApi,
+  generatedDocumentsApi,
   leaveApi,
   loansApi,
   payRunsApi,
@@ -50,6 +51,8 @@ export default function MyWorkspacePage() {
   const allAssets = useApiResource(() => companyAssetsApi.list());
   const assetsById = new Map((allAssets.data ?? []).map((asset) => [asset.id, asset]));
   const attendance = useApiResource(() => attendanceApi.mine());
+  const myDocuments = useApiResource(() => generatedDocumentsApi.mine());
+  const [signingDocumentId, setSigningDocumentId] = useState<string | null>(null);
   const { showToast } = useToast();
   const [clockActionPending, setClockActionPending] = useState(false);
 
@@ -422,6 +425,53 @@ export default function MyWorkspacePage() {
         </Card>
 
         <Card>
+          <CardHeader title="My Documents" />
+          {myDocuments.loading ? <LoadingState /> : null}
+          {myDocuments.error ? <ErrorState message={myDocuments.error} /> : null}
+          {myDocuments.data && myDocuments.data.length === 0 ? (
+            <EmptyState label="No documents issued to you yet." />
+          ) : null}
+          {myDocuments.data && myDocuments.data.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {myDocuments.data.map((doc) => (
+                <div key={doc.id} className="rounded-panel border border-border p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-bold text-ink">{titleCase(doc.document_type)}</div>
+                      <StatusBadge status={doc.status} />
+                    </div>
+                    <div className="flex gap-2">
+                      {doc.status === "sent_for_signature" ? (
+                        <Button size="md" onClick={() => setSigningDocumentId(doc.id)}>
+                          Sign
+                        </Button>
+                      ) : null}
+                      <Button
+                        size="md"
+                        variant="secondary"
+                        onClick={() => generatedDocumentsApi.downloadPdf(doc.id, "document.pdf")}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  </div>
+                  {signingDocumentId === doc.id ? (
+                    <SignDocumentForm
+                      documentId={doc.id}
+                      onCancel={() => setSigningDocumentId(null)}
+                      onSigned={() => {
+                        setSigningDocumentId(null);
+                        myDocuments.reload();
+                      }}
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </Card>
+
+        <Card>
           <CardHeader title="Company Policies" />
           {policies.loading ? <LoadingState /> : null}
           {policies.error ? <ErrorState message={policies.error} /> : null}
@@ -527,5 +577,52 @@ function PayslipFigure({ label, value, emphasize }: { label: string; value: numb
         {formatNaira(value)}
       </div>
     </div>
+  );
+}
+
+function SignDocumentForm({
+  documentId,
+  onCancel,
+  onSigned,
+}: {
+  documentId: string;
+  onCancel: () => void;
+  onSigned: () => void;
+}) {
+  const { showToast } = useToast();
+  const [signedByName, setSignedByName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      await generatedDocumentsApi.sign(documentId, { signed_by_name: signedByName });
+      showToast("Document signed", "good");
+      onSigned();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mt-3 flex items-end gap-3 border-t border-border pt-3">
+      <div className="flex-1">
+        <Label htmlFor={`sign-${documentId}`}>Type your full name to sign</Label>
+        <Input
+          id={`sign-${documentId}`}
+          value={signedByName}
+          onChange={(event) => setSignedByName(event.target.value)}
+          required
+        />
+      </div>
+      <Button type="button" variant="secondary" onClick={onCancel}>
+        Cancel
+      </Button>
+      <Button type="submit" disabled={submitting}>
+        {submitting ? "Signing…" : "Confirm Signature"}
+      </Button>
+    </form>
   );
 }
