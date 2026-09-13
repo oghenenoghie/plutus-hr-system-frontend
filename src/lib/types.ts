@@ -1054,6 +1054,7 @@ export type FixedAssetStatus = "active" | "disposed";
 export interface FixedAsset {
   id: string;
   org_id: string;
+  department_id: string | null;
   name: string;
   asset_tag: string;
   acquisition_date: string;
