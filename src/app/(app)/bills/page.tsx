@@ -73,6 +73,9 @@ export default function BillsPage() {
             <Link href="/bills/vendors">
               <Button variant="secondary">Vendors</Button>
             </Link>
+            <Link href="/bills/recurring">
+              <Button variant="secondary">Recurring</Button>
+            </Link>
             <Button onClick={() => setCreating(true)}>New Bill</Button>
           </div>
         }
@@ -90,6 +93,7 @@ export default function BillsPage() {
                 <Th>Vendor</Th>
                 <Th>Due</Th>
                 <Th align="right">Amount</Th>
+                <Th align="right">Net Payable</Th>
                 <Th>Status</Th>
                 <Th align="right">Actions</Th>
               </tr>
@@ -102,6 +106,16 @@ export default function BillsPage() {
                     <Td>{vendorNameById.get(bill.vendor_id) ?? "—"}</Td>
                     <Td>{formatDate(bill.due_date)}</Td>
                     <Td align="right">{formatNaira(bill.amount_minor)}</Td>
+                    <Td align="right">
+                      <div className="font-bold">{formatNaira(bill.net_payable_minor)}</div>
+                      {bill.vat_minor > 0 || bill.wht_amount_minor > 0 ? (
+                        <div className="text-[11px] text-ink-soft">
+                          {bill.vat_minor > 0 ? `VAT ${formatNaira(bill.vat_minor)}` : ""}
+                          {bill.vat_minor > 0 && bill.wht_amount_minor > 0 ? " · " : ""}
+                          {bill.wht_amount_minor > 0 ? `WHT -${formatNaira(bill.wht_amount_minor)}` : ""}
+                        </div>
+                      ) : null}
+                    </Td>
                     <Td>
                       <StatusBadge status={bill.status} />
                     </Td>
@@ -145,7 +159,7 @@ export default function BillsPage() {
                   </tr>
                   {expandedId === bill.id ? (
                     <tr>
-                      <td colSpan={6} className="border-b border-border bg-bg px-4 py-5">
+                      <td colSpan={7} className="border-b border-border bg-bg px-4 py-5">
                         <ApprovalHistoryPanel
                           loading={loadingHistoryId === bill.id}
                           instance={history[bill.id]}
@@ -183,6 +197,8 @@ function NewBillDrawer({ onClose, onCreated }: { onClose: () => void; onCreated:
   const [dueDate, setDueDate] = useState("");
   const [expenseAccountCode, setExpenseAccountCode] = useState("");
   const [amount, setAmount] = useState("");
+  const [vat, setVat] = useState("");
+  const [whtCategory, setWhtCategory] = useState<"" | "goods" | "services">("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -201,6 +217,8 @@ function NewBillDrawer({ onClose, onCreated }: { onClose: () => void; onCreated:
         due_date: dueDate,
         expense_account_code: expenseAccountCode,
         amount_minor: nairaToMinor(amount),
+        vat_minor: vat ? nairaToMinor(vat) : 0,
+        wht_category: whtCategory || null,
         description: description || null,
       });
       onCreated();
@@ -281,6 +299,24 @@ function NewBillDrawer({ onClose, onCreated }: { onClose: () => void; onCreated:
             inputMode="decimal"
             required
           />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="vat">VAT (₦)</Label>
+            <Input id="vat" value={vat} onChange={(event) => setVat(event.target.value)} inputMode="decimal" placeholder="0" />
+          </div>
+          <div>
+            <Label htmlFor="whtCategory">WHT Category</Label>
+            <Select
+              id="whtCategory"
+              value={whtCategory}
+              onChange={(event) => setWhtCategory(event.target.value as "" | "goods" | "services")}
+            >
+              <option value="">None</option>
+              <option value="goods">Goods</option>
+              <option value="services">Services</option>
+            </Select>
+          </div>
         </div>
         <div>
           <Label htmlFor="description">Description</Label>

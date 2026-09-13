@@ -15,7 +15,7 @@ import { Select } from "@/components/ui/select";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
-import { chartAccountsApi, customersApi, invoicesApi } from "@/lib/api/endpoints";
+import { chartAccountsApi, creditNotesApi, customersApi, invoicesApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira, nairaToMinor } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 import type { Invoice } from "@/lib/types";
@@ -25,6 +25,7 @@ export default function InvoicesPage() {
   const customers = useApiResource(() => customersApi.list());
   const { showToast } = useToast();
   const [creating, setCreating] = useState(false);
+  const [creditingInvoice, setCreditingInvoice] = useState<Invoice | null>(null);
 
   const customerNameById = new Map(
     (customers.data ?? []).map((customer) => [customer.id, customer.name]),
@@ -48,6 +49,9 @@ export default function InvoicesPage() {
           <div className="flex gap-3">
             <Link href="/invoices/customers">
               <Button variant="secondary">Customers</Button>
+            </Link>
+            <Link href="/invoices/recurring">
+              <Button variant="secondary">Recurring</Button>
             </Link>
             <Button onClick={() => setCreating(true)}>New Invoice</Button>
           </div>
@@ -112,9 +116,12 @@ export default function InvoicesPage() {
                           confirmLabel="Mark Paid"
                         />
                       ) : null}
-                      {invoice.status === "paid" || invoice.status === "void" ? (
-                        <span className="text-ink-soft">—</span>
+                      {invoice.status === "sent" || invoice.status === "paid" ? (
+                        <Button size="md" variant="secondary" onClick={() => setCreditingInvoice(invoice)}>
+                          Credit Note
+                        </Button>
                       ) : null}
+                      {invoice.status === "void" ? <span className="text-ink-soft">—</span> : null}
                     </div>
                   </Td>
                 </tr>
@@ -133,7 +140,137 @@ export default function InvoicesPage() {
           }}
         />
       ) : null}
+
+      {creditingInvoice ? (
+        <CreditNoteDrawer
+          invoice={creditingInvoice}
+          onClose={() => setCreditingInvoice(null)}
+          onIssued={() => {
+            setCreditingInvoice(null);
+            invoices.reload();
+          }}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function CreditNoteDrawer({
+  invoice,
+  onClose,
+  onIssued,
+}: {
+  invoice: Invoice;
+  onClose: () => void;
+  onIssued: () => void;
+}) {
+  const { showToast } = useToast();
+  const creditNotes = useApiResource(() => creditNotesApi.forInvoice(invoice.id), [invoice.id]);
+  const [creditNoteNumber, setCreditNoteNumber] = useState("");
+  const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [amount, setAmount] = useState("");
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const alreadyCredited = (creditNotes.data ?? []).reduce((sum, note) => sum + note.amount_minor, 0);
+  const remaining = invoice.amount_minor - alreadyCredited;
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      await creditNotesApi.create(invoice.id, {
+        credit_note_number: creditNoteNumber,
+        issue_date: issueDate,
+        amount_minor: nairaToMinor(amount),
+        reason,
+      });
+      showToast("Credit note issued", "good");
+      onIssued();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Drawer title={`Credit Note — ${invoice.invoice_number}`} onClose={onClose}>
+      <div className="flex flex-1 flex-col gap-4">
+        <p className="text-[13px] text-ink-soft">
+          Invoice total {formatNaira(invoice.amount_minor)}, already credited{" "}
+          {formatNaira(alreadyCredited)}, remaining balance{" "}
+          <span className="font-bold text-ink">{formatNaira(remaining)}</span>.
+        </p>
+
+        {creditNotes.data && creditNotes.data.length > 0 ? (
+          <Table>
+            <Thead>
+              <tr>
+                <Th>Number</Th>
+                <Th>Date</Th>
+                <Th align="right">Amount</Th>
+              </tr>
+            </Thead>
+            <tbody>
+              {creditNotes.data.map((note) => (
+                <tr key={note.id}>
+                  <Td className="font-bold">{note.credit_note_number}</Td>
+                  <Td>{formatDate(note.issue_date)}</Td>
+                  <Td align="right">{formatNaira(note.amount_minor)}</Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : null}
+
+        {remaining > 0 ? (
+          <form onSubmit={onSubmit} className="flex flex-col gap-4">
+            <div>
+              <Label htmlFor="creditNoteNumber">Credit Note Number</Label>
+              <Input
+                id="creditNoteNumber"
+                value={creditNoteNumber}
+                onChange={(event) => setCreditNoteNumber(event.target.value)}
+                placeholder="e.g. CN-1001"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="issueDate">Issue Date</Label>
+              <Input
+                id="issueDate"
+                type="date"
+                value={issueDate}
+                onChange={(event) => setIssueDate(event.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="amount">Amount (₦)</Label>
+              <Input id="amount" value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" required />
+            </div>
+            <div>
+              <Label htmlFor="reason">Reason</Label>
+              <Textarea id="reason" value={reason} onChange={(event) => setReason(event.target.value)} required />
+            </div>
+            <div className="mt-auto flex justify-end gap-3 pt-2">
+              <Button type="button" variant="secondary" onClick={onClose}>
+                Close
+              </Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "Issuing…" : "Issue Credit Note"}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="mt-auto flex justify-end pt-4">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        )}
+      </div>
+    </Drawer>
   );
 }
 

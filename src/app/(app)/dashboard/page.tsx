@@ -13,8 +13,9 @@ import { KpiTile } from "@/components/ui/kpi-tile";
 import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmActionButton } from "@/components/ui/confirm-action-button";
 import { ApiError } from "@/lib/api/client";
-import { dashboardApi, notificationsApi } from "@/lib/api/endpoints";
+import { dashboardApi, notificationsApi, remindersApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 
@@ -22,13 +23,38 @@ export default function DashboardPage() {
   const summary = useApiResource(() => dashboardApi.summary());
   const deadlines = useApiResource(() => dashboardApi.deadlines(30));
   const [broadcasting, setBroadcasting] = useState(false);
+  const { showToast } = useToast();
+
+  async function runReminders() {
+    try {
+      const result = await remindersApi.run();
+      showToast(
+        `${result.notifications_created} reminder notification(s) sent (${result.deadline_count} deadlines, ${result.stale_approval_count} stale approvals)`,
+        "good",
+      );
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    }
+  }
 
   return (
     <div>
       <PageHeader
         title="Overview"
         subtitle="Workforce, payroll and compliance at a glance"
-        action={<Button onClick={() => setBroadcasting(true)}>Send Announcement</Button>}
+        action={
+          <div className="flex gap-3">
+            <ConfirmActionButton
+              action={runReminders}
+              label="Run Reminders"
+              tone="primary"
+              confirmTitle="Run the reminder job now?"
+              confirmMessage="Notifies admins/payroll managers of upcoming statutory deadlines and stale approval requests. Intended to run on a schedule externally, but safe to trigger on demand."
+              confirmLabel="Run"
+            />
+            <Button onClick={() => setBroadcasting(true)}>Send Announcement</Button>
+          </div>
+        }
       />
 
       {summary.loading ? <LoadingState /> : null}

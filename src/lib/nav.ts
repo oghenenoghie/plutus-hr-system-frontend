@@ -12,6 +12,8 @@ export interface NavItem {
     | "jobGrades"
     | "policies"
     | "shifts"
+    | "shiftRoster"
+    | "attendance"
     | "recruitment"
     | "performance"
     | "learning"
@@ -36,7 +38,11 @@ export interface NavItem {
     | "settlement"
     | "simulation"
     | "approvalWorkflows"
-    | "auditLog";
+    | "auditLog"
+    | "payrollReports"
+    | "documentGeneration"
+    | "permissions"
+    | "subscription";
   roles: Role[];
 }
 
@@ -52,6 +58,18 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/job-grades", label: "Job Grades", icon: "jobGrades", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/policies", label: "Policies", icon: "policies", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/shifts", label: "Shifts", icon: "shifts", roles: ["admin", "payroll_manager", "manager"] },
+  {
+    href: "/shift-roster",
+    label: "Shift Roster",
+    icon: "shiftRoster",
+    roles: ["admin", "payroll_manager", "manager"],
+  },
+  {
+    href: "/attendance",
+    label: "Attendance",
+    icon: "attendance",
+    roles: ["admin", "payroll_manager", "manager"],
+  },
   { href: "/recruitment", label: "Recruitment", icon: "recruitment", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/performance", label: "Performance", icon: "performance", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/learning", label: "Learning", icon: "learning", roles: ["admin", "payroll_manager", "manager"] },
@@ -64,7 +82,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/loans", label: "Loans & Advances", icon: "loans", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/benefits", label: "Benefits", icon: "benefits", roles: ["admin", "payroll_manager", "manager"] },
   { href: "/contractors", label: "Contractors", icon: "contractors", roles: ["admin", "payroll_manager"] },
-  { href: "/reports", label: "Statutory Reports", icon: "reports", roles: ["admin", "payroll_manager"] },
+  { href: "/reports", label: "Financial Reports", icon: "reports", roles: ["admin", "payroll_manager"] },
   { href: "/settlement", label: "Final Settlement", icon: "settlement", roles: ["admin", "payroll_manager"] },
   { href: "/simulation", label: "Simulation", icon: "simulation", roles: ["admin", "payroll_manager"] },
   { href: "/integrations", label: "Integrations", icon: "integrations", roles: ["admin"] },
@@ -107,6 +125,20 @@ export const NAV_ITEMS: NavItem[] = [
     icon: "bankReconciliation",
     roles: ["admin", "payroll_manager"],
   },
+  {
+    href: "/payroll-reports",
+    label: "Payroll Reports",
+    icon: "payrollReports",
+    roles: ["admin", "payroll_manager"],
+  },
+  {
+    href: "/document-generation",
+    label: "Documents",
+    icon: "documentGeneration",
+    roles: ["admin", "payroll_manager"],
+  },
+  { href: "/permissions", label: "Permissions", icon: "permissions", roles: ["admin"] },
+  { href: "/subscription", label: "Subscription", icon: "subscription", roles: ["admin"] },
 ];
 
 export function navForRole(role: Role): NavItem[] {

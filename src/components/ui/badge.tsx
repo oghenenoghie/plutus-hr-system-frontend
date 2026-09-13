@@ -39,6 +39,17 @@ const STATUS_TONE: Record<string, Tone> = {
   // lifecycle
   suspended: "warn",
   terminated: "bad",
+  onboarding: "warn",
+  // probation periods
+  confirmed: "good",
+  // checklist items
+  done: "good",
+  // generated documents
+  sent_for_signature: "warn",
+  signed: "good",
+  // subscriptions
+  past_due: "warn",
+  canceled: "bad",
   // recruitment: job postings
   open: "good",
   closed: "neutral",

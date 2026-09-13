@@ -10,14 +10,39 @@ import { Drawer } from "@/components/ui/drawer";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
+import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
-import { chartAccountsApi, companyBankAccountsApi } from "@/lib/api/endpoints";
+import { chartAccountsApi, companyBankAccountsApi, ledgerReconciliationApi } from "@/lib/api/endpoints";
 import { formatDate, formatNaira, nairaToMinor } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
-import type { BankStatementLine, ChartAccount, CompanyBankAccount, LedgerEntry } from "@/lib/types";
+import type {
+  BankStatementLine,
+  ChartAccount,
+  CompanyBankAccount,
+  LedgerEntry,
+  LedgerReconciliationLedgerEntry,
+  LedgerStatementLine,
+} from "@/lib/types";
 
 export default function BankReconciliationPage() {
+  return (
+    <div>
+      <PageHeader
+        title="Bank Reconciliation"
+        subtitle="Match the org's bank statement against General Ledger cash activity"
+      />
+      <Tabs
+        tabs={[
+          { id: "by-bank-account", label: "By Bank Account", content: <ByBankAccountTab /> },
+          { id: "by-ledger-account", label: "By Ledger Account", content: <ByLedgerAccountTab /> },
+        ]}
+      />
+    </div>
+  );
+}
+
+function ByBankAccountTab() {
   const bankAccounts = useApiResource(() => companyBankAccountsApi.list());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creatingAccount, setCreatingAccount] = useState(false);
@@ -29,11 +54,9 @@ export default function BankReconciliationPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Bank Reconciliation"
-        subtitle="Match the org's bank statement against General Ledger cash activity"
-        action={<Button onClick={() => setCreatingAccount(true)}>New Bank Account</Button>}
-      />
+      <div className="mb-6 flex justify-end">
+        <Button onClick={() => setCreatingAccount(true)}>New Bank Account</Button>
+      </div>
 
       <Card className="mb-6">
         {bankAccounts.loading ? <LoadingState /> : null}
@@ -422,6 +445,282 @@ function MatchDrawer({
       await companyBankAccountsApi.matchStatementLine(bankAccount.id, line.id, {
         ledger_entry_id: entryId,
       });
+      onMatched();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setMatchingId(null);
+    }
+  }
+
+  return (
+    <Drawer title={`Match "${line.description}"`} onClose={onClose}>
+      <div className="flex flex-1 flex-col gap-4">
+        <p className="text-[13px] text-ink-soft">
+          Statement amount: <span className="font-bold text-ink">{formatNaira(line.amount_minor)}</span>.
+          Only ledger entries with a matching amount are shown.
+        </p>
+        {eligible.length === 0 ? (
+          <EmptyState label="No unmatched ledger entry has this exact amount yet." />
+        ) : (
+          <div className="flex flex-col gap-2">
+            {eligible.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                onClick={() => match(entry.id)}
+                disabled={matchingId !== null}
+                className="flex items-center justify-between rounded-panel border border-border px-3 py-2.5 text-left text-[13px] hover:bg-bg disabled:opacity-50"
+              >
+                <span>
+                  <span className="font-bold">{entry.description ?? "—"}</span>
+                  <span className="block text-[11px] text-ink-soft">{formatDate(entry.created_at)}</span>
+                </span>
+                <span className="font-bold">{formatNaira(signedAmount(entry))}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="mt-auto flex justify-end gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </Drawer>
+  );
+}
+
+function ByLedgerAccountTab() {
+  const accounts = useApiResource(() => chartAccountsApi.list());
+  const [accountCode, setAccountCode] = useState("");
+  const status = useApiResource(
+    () => (accountCode ? ledgerReconciliationApi.status(accountCode) : Promise.resolve(null)),
+    [accountCode],
+  );
+  const [addingLine, setAddingLine] = useState(false);
+  const [matching, setMatching] = useState<LedgerStatementLine | null>(null);
+
+  const assetAccounts = (accounts.data ?? []).filter(
+    (account) => account.type === "asset" && account.is_active,
+  );
+
+  return (
+    <div>
+      <Card className="mb-6">
+        <Label htmlFor="accountCode">Ledger Account</Label>
+        <Select id="accountCode" value={accountCode} onChange={(event) => setAccountCode(event.target.value)}>
+          <option value="">Select an account</option>
+          {assetAccounts.map((account) => (
+            <option key={account.id} value={account.code}>
+              {account.name} ({account.code})
+            </option>
+          ))}
+        </Select>
+      </Card>
+
+      {accountCode ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader
+              title="Unmatched Statement Lines"
+              action={<Button onClick={() => setAddingLine(true)}>Import Lines</Button>}
+            />
+            {status.loading ? <LoadingState /> : null}
+            {status.error ? <ErrorState message={status.error} /> : null}
+            {status.data && status.data.unmatched_statement_lines.length === 0 ? (
+              <EmptyState label="Nothing outstanding — every statement line is matched." />
+            ) : null}
+            {status.data && status.data.unmatched_statement_lines.length > 0 ? (
+              <Table>
+                <Thead>
+                  <tr>
+                    <Th>Date</Th>
+                    <Th>Description</Th>
+                    <Th align="right">Amount</Th>
+                    <Th align="right">Actions</Th>
+                  </tr>
+                </Thead>
+                <tbody>
+                  {status.data.unmatched_statement_lines.map((line) => (
+                    <tr key={line.id}>
+                      <Td>{formatDate(line.transaction_date)}</Td>
+                      <Td>{line.description}</Td>
+                      <Td align="right">{formatNaira(line.amount_minor)}</Td>
+                      <Td align="right">
+                        <Button variant="secondary" onClick={() => setMatching(line)}>
+                          Match
+                        </Button>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : null}
+          </Card>
+
+          <Card>
+            <CardHeader title="Unmatched Ledger Entries" />
+            {status.data && status.data.unmatched_ledger_entries.length === 0 ? (
+              <EmptyState label="Nothing outstanding — every ledger entry is matched." />
+            ) : null}
+            {status.data && status.data.unmatched_ledger_entries.length > 0 ? (
+              <Table>
+                <Thead>
+                  <tr>
+                    <Th>Date</Th>
+                    <Th>Description</Th>
+                    <Th align="right">Debit</Th>
+                    <Th align="right">Credit</Th>
+                  </tr>
+                </Thead>
+                <tbody>
+                  {status.data.unmatched_ledger_entries.map((entry) => (
+                    <tr key={entry.id}>
+                      <Td>{formatDate(entry.created_at)}</Td>
+                      <Td>{entry.description ?? "—"}</Td>
+                      <Td align="right">{entry.debit_minor ? formatNaira(entry.debit_minor) : "—"}</Td>
+                      <Td align="right">{entry.credit_minor ? formatNaira(entry.credit_minor) : "—"}</Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : null}
+          </Card>
+        </div>
+      ) : null}
+
+      {addingLine ? (
+        <ImportLedgerStatementLinesDrawer
+          accountCode={accountCode}
+          onClose={() => setAddingLine(false)}
+          onImported={() => {
+            setAddingLine(false);
+            status.reload();
+          }}
+        />
+      ) : null}
+
+      {matching ? (
+        <LedgerMatchDrawer
+          line={matching}
+          candidates={status.data?.unmatched_ledger_entries ?? []}
+          onClose={() => setMatching(null)}
+          onMatched={() => {
+            setMatching(null);
+            status.reload();
+          }}
+        />
+      ) : null}
+
+    </div>
+  );
+}
+
+function ImportLedgerStatementLinesDrawer({
+  accountCode,
+  onClose,
+  onImported,
+}: {
+  accountCode: string;
+  onClose: () => void;
+  onImported: () => void;
+}) {
+  const { showToast } = useToast();
+  const [transactionDate, setTransactionDate] = useState("");
+  const [description, setDescription] = useState("");
+  const [direction, setDirection] = useState<"in" | "out">("in");
+  const [amount, setAmount] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      const minor = nairaToMinor(amount);
+      await ledgerReconciliationApi.importLines(accountCode, [
+        {
+          transaction_date: transactionDate,
+          description,
+          amount_minor: direction === "in" ? minor : -minor,
+        },
+      ]);
+      onImported();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Drawer title="Import Statement Line" onClose={onClose}>
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
+        <div>
+          <Label htmlFor="transactionDate">Transaction Date</Label>
+          <Input
+            id="transactionDate"
+            type="date"
+            value={transactionDate}
+            onChange={(event) => setTransactionDate(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Input
+            id="description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="e.g. Customer deposit"
+            required
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="direction">Direction</Label>
+            <Select id="direction" value={direction} onChange={(event) => setDirection(event.target.value as "in" | "out")}>
+              <option value="in">Money In</option>
+              <option value="out">Money Out</option>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="amount">Amount (₦)</Label>
+            <Input id="amount" value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" required />
+          </div>
+        </div>
+        <div className="mt-auto flex justify-end gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Importing…" : "Import Line"}
+          </Button>
+        </div>
+      </form>
+    </Drawer>
+  );
+}
+
+function LedgerMatchDrawer({
+  line,
+  candidates,
+  onClose,
+  onMatched,
+}: {
+  line: LedgerStatementLine;
+  candidates: LedgerReconciliationLedgerEntry[];
+  onClose: () => void;
+  onMatched: () => void;
+}) {
+  const { showToast } = useToast();
+  const [matchingId, setMatchingId] = useState<string | null>(null);
+
+  const signedAmount = (entry: LedgerReconciliationLedgerEntry) => entry.debit_minor - entry.credit_minor;
+  const eligible = candidates.filter((entry) => signedAmount(entry) === line.amount_minor);
+
+  async function match(entryId: string) {
+    setMatchingId(entryId);
+    try {
+      await ledgerReconciliationApi.match(line.id, entryId);
       onMatched();
     } catch (err) {
       showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
