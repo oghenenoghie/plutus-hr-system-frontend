@@ -11,6 +11,7 @@ export type EmploymentType =
   | "intern"
   | "consultant";
 export type LifecycleState = "active" | "suspended" | "terminated";
+export type LifecycleStage = "onboarding" | "active" | "suspended" | "terminated";
 export type PayRunStatus = "draft" | "processing" | "completed" | "failed" | "reversed";
 export type LeaveType = "annual" | "sick" | "maternity" | "paternity" | "unpaid";
 export type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
@@ -42,10 +43,12 @@ export interface Employee {
   org_id: string;
   account_id: string | null;
   employee_number: string;
+  login_code: string | null;
   full_name: string;
   state_of_residence: string;
   employment_type: EmploymentType;
   lifecycle_state: LifecycleState;
+  lifecycle_stage: LifecycleStage;
   date_of_joining: string;
   job_title: string | null;
   manager_id: string | null;
@@ -822,6 +825,8 @@ export interface SimulationOut {
   cumulative_chargeable_income_minor: number;
   paye_minor: number;
   loan_deduction_minor: number;
+  benefit_deduction_minor: number;
+  union_dues_deduction_minor: number;
   net_pay_minor: number;
 }
 
@@ -928,6 +933,8 @@ export interface VendorUpdateBody {
 
 export type BillStatus = "draft" | "approved" | "paid" | "void";
 
+export type WhtCategoryCode = "goods" | "services";
+
 export interface Bill {
   id: string;
   org_id: string;
@@ -937,6 +944,10 @@ export interface Bill {
   due_date: string;
   expense_account_code: string;
   amount_minor: number;
+  vat_minor: number;
+  wht_category: WhtCategoryCode | null;
+  wht_amount_minor: number;
+  net_payable_minor: number;
   description: string | null;
   status: BillStatus;
   paid_at: string | null;
@@ -950,6 +961,8 @@ export interface BillCreateBody {
   due_date: string;
   expense_account_code: string;
   amount_minor: number;
+  vat_minor?: number;
+  wht_category?: WhtCategoryCode | null;
   description?: string | null;
 }
 
