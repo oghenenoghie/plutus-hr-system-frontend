@@ -133,6 +133,13 @@ export default function EmployeesPage() {
                     </Td>
                     <Td align="right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          size="md"
+                          variant="secondary"
+                          onClick={() => router.push(`/employees/${employee.id}`)}
+                        >
+                          View
+                        </Button>
                         {canManageMasking ? (
                           <Button size="md" variant="secondary" onClick={() => toggleMasking(employee)}>
                             {employee.salary_masked ? "Unmask Salary" : "Mask Salary"}
