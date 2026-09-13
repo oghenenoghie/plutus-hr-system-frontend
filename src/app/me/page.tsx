@@ -14,6 +14,7 @@ import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
 import {
+  attendanceApi,
   benefitsApi,
   companyAssetsApi,
   employeesApi,
@@ -27,7 +28,7 @@ import {
   trainingEnrollmentsApi,
   unionMembershipsApi,
 } from "@/lib/api/endpoints";
-import { formatDate, formatNaira, titleCase } from "@/lib/format";
+import { formatDate, formatDateTime, formatNaira, titleCase } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 import type { PerformanceReview, TrainingEnrollment } from "@/lib/types";
 
@@ -48,6 +49,36 @@ export default function MyWorkspacePage() {
   const myAssets = useApiResource(() => companyAssetsApi.mine());
   const allAssets = useApiResource(() => companyAssetsApi.list());
   const assetsById = new Map((allAssets.data ?? []).map((asset) => [asset.id, asset]));
+  const attendance = useApiResource(() => attendanceApi.mine());
+  const { showToast } = useToast();
+  const [clockActionPending, setClockActionPending] = useState(false);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const todayRecord = (attendance.data ?? []).find((record) => record.work_date === today);
+
+  async function clockIn() {
+    setClockActionPending(true);
+    try {
+      await attendanceApi.clockIn();
+      attendance.reload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    } finally {
+      setClockActionPending(false);
+    }
+  }
+
+  async function clockOut() {
+    setClockActionPending(true);
+    try {
+      await attendanceApi.clockOut();
+      attendance.reload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    } finally {
+      setClockActionPending(false);
+    }
+  }
 
   const latestPayslip = payslips.data
     ? [...payslips.data].sort((a, b) => (a.period_end < b.period_end ? 1 : -1))[0]
@@ -113,6 +144,54 @@ export default function MyWorkspacePage() {
       ) : null}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader
+            title="Attendance"
+            action={
+              todayRecord?.clock_in_at && !todayRecord.clock_out_at ? (
+                <Button onClick={clockOut} disabled={clockActionPending}>
+                  {clockActionPending ? "Working…" : "Clock Out"}
+                </Button>
+              ) : !todayRecord?.clock_in_at ? (
+                <Button onClick={clockIn} disabled={clockActionPending}>
+                  {clockActionPending ? "Working…" : "Clock In"}
+                </Button>
+              ) : undefined
+            }
+          />
+          {attendance.loading ? <LoadingState /> : null}
+          {attendance.error ? <ErrorState message={attendance.error} /> : null}
+          {todayRecord?.clock_in_at && todayRecord.clock_out_at ? (
+            <p className="mb-3 text-[12px] text-ink-soft">
+              Clocked in at {formatDateTime(todayRecord.clock_in_at)}, out at{" "}
+              {formatDateTime(todayRecord.clock_out_at)}.
+            </p>
+          ) : null}
+          {attendance.data && attendance.data.length === 0 ? (
+            <EmptyState label="No attendance recorded yet." />
+          ) : null}
+          {attendance.data && attendance.data.length > 0 ? (
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Date</Th>
+                  <Th>Clock In</Th>
+                  <Th>Clock Out</Th>
+                </tr>
+              </Thead>
+              <tbody>
+                {[...attendance.data].reverse().slice(0, 7).map((record) => (
+                  <tr key={record.id}>
+                    <Td>{formatDate(record.work_date)}</Td>
+                    <Td>{record.clock_in_at ? formatDateTime(record.clock_in_at) : "—"}</Td>
+                    <Td>{record.clock_out_at ? formatDateTime(record.clock_out_at) : "—"}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : null}
+        </Card>
+
         <Card>
           <CardHeader title="Leave Requests" />
           {leaveRequests.loading ? <LoadingState /> : null}
