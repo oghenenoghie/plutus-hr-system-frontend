@@ -25,6 +25,8 @@ import {
   payRunsApi,
   performanceReviewsApi,
   policiesApi,
+  quizzesApi,
+  trainingCourseAttachmentsApi,
   trainingCoursesApi,
   trainingEnrollmentsApi,
   unionMembershipsApi,
@@ -53,6 +55,7 @@ export default function MyWorkspacePage() {
   const attendance = useApiResource(() => attendanceApi.mine());
   const myDocuments = useApiResource(() => generatedDocumentsApi.mine());
   const [signingDocumentId, setSigningDocumentId] = useState<string | null>(null);
+  const [takingQuizFor, setTakingQuizFor] = useState<TrainingEnrollment | null>(null);
   const { showToast } = useToast();
   const [clockActionPending, setClockActionPending] = useState(false);
 
@@ -345,6 +348,7 @@ export default function MyWorkspacePage() {
                   <Th>Course</Th>
                   <Th>Status</Th>
                   <Th align="right">Score</Th>
+                  <Th align="right">Actions</Th>
                 </tr>
               </Thead>
               <tbody>
@@ -355,10 +359,30 @@ export default function MyWorkspacePage() {
                       <StatusBadge status={enrollment.status} />
                     </Td>
                     <Td align="right">{enrollment.score != null ? `${enrollment.score}/100` : "—"}</Td>
+                    <Td align="right">
+                      {enrollment.status === "enrolled" || enrollment.status === "in_progress" ? (
+                        <Button size="md" variant="secondary" onClick={() => setTakingQuizFor(enrollment)}>
+                          Take Quiz
+                        </Button>
+                      ) : (
+                        <span className="text-ink-soft">—</span>
+                      )}
+                    </Td>
                   </tr>
                 ))}
               </tbody>
             </Table>
+          ) : null}
+          {takingQuizFor ? (
+            <QuizTaker
+              enrollment={takingQuizFor}
+              courseTitle={coursesById.get(takingQuizFor.course_id)?.title ?? "Course"}
+              onClose={() => setTakingQuizFor(null)}
+              onCompleted={() => {
+                setTakingQuizFor(null);
+                myEnrollments.reload();
+              }}
+            />
           ) : null}
         </Card>
 
@@ -576,6 +600,126 @@ function PayslipFigure({ label, value, emphasize }: { label: string; value: numb
       <div className={`mt-1 text-[15px] font-extrabold ${emphasize ? "text-primary" : "text-ink"}`}>
         {formatNaira(value)}
       </div>
+    </div>
+  );
+}
+
+function QuizTaker({
+  enrollment,
+  courseTitle,
+  onClose,
+  onCompleted,
+}: {
+  enrollment: TrainingEnrollment;
+  courseTitle: string;
+  onClose: () => void;
+  onCompleted: () => void;
+}) {
+  const { showToast } = useToast();
+  const quizzes = useApiResource(() => quizzesApi.forCourse(enrollment.course_id), [enrollment.course_id]);
+  const quiz = quizzes.data?.[0] ?? null;
+  const attachments = useApiResource(
+    () => trainingCourseAttachmentsApi.forCourse(enrollment.course_id),
+    [enrollment.course_id],
+  );
+  const questions = useApiResource(
+    () => (quiz ? quizzesApi.questionsForAttempt(quiz.id) : Promise.resolve([])),
+    [quiz?.id],
+  );
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ score: number; passed: boolean } | null>(null);
+
+  async function submit() {
+    if (!quiz || !questions.data) return;
+    if (Object.keys(answers).length !== questions.data.length) {
+      showToast("Answer every question before submitting.", "bad");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const orderedAnswers = questions.data.map((q) => answers[q.id]!);
+      const attempt = await quizzesApi.submitAttempt(quiz.id, { answers: orderedAnswers });
+      setResult({ score: attempt.score, passed: attempt.passed });
+      if (attempt.passed) onCompleted();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-panel border border-border p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-[13px] font-extrabold text-ink">Quiz — {courseTitle}</h3>
+        <Button size="md" variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+
+      {attachments.data && attachments.data.length > 0 ? (
+        <div className="mb-4 flex flex-col gap-1.5">
+          <span className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Materials</span>
+          {attachments.data.map((attachment) => (
+            <a
+              key={attachment.id}
+              href={attachment.storage_url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[13px] font-bold text-primary hover:underline"
+            >
+              {attachment.title}
+            </a>
+          ))}
+        </div>
+      ) : null}
+
+      {quizzes.loading || questions.loading ? <LoadingState /> : null}
+      {!quizzes.loading && !quiz ? (
+        <EmptyState label="No quiz has been set up for this course yet." />
+      ) : null}
+
+      {result ? (
+        <div className="flex flex-col gap-3">
+          <Badge tone={result.passed ? "good" : "bad"}>
+            {result.passed ? "Passed" : "Not Passed"} — Score {result.score}%
+          </Badge>
+          {!result.passed ? (
+            <p className="text-[12px] text-ink-soft">
+              You can retake the quiz — a new attempt is recorded each time.
+            </p>
+          ) : null}
+        </div>
+      ) : quiz && questions.data && questions.data.length > 0 ? (
+        <div className="flex flex-col gap-4">
+          {questions.data.map((question, index) => (
+            <div key={question.id}>
+              <p className="mb-2 text-[13px] font-bold text-ink">
+                {index + 1}. {question.question_text}
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {question.options.map((option, optionIndex) => (
+                  <label key={optionIndex} className="flex items-center gap-2 text-[13px] text-ink">
+                    <input
+                      type="radio"
+                      name={question.id}
+                      checked={answers[question.id] === optionIndex}
+                      onChange={() => setAnswers((prev) => ({ ...prev, [question.id]: optionIndex }))}
+                    />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className="flex justify-end">
+            <Button onClick={submit} disabled={submitting}>
+              {submitting ? "Submitting…" : "Submit Quiz"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
