@@ -1895,8 +1895,6 @@ export interface MembershipRoleUpdateOut {
   account_id: string;
   email: string;
   role: Role;
-  totp_secret: string | null;
-  totp_provisioning_uri: string | null;
 }
 
 export interface EffectivePermissions {

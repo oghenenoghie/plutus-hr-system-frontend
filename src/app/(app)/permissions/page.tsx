@@ -169,19 +169,9 @@ function RoleChangedDialog({ result, onClose }: { result: MembershipRoleUpdateOu
           <span className="font-bold text-ink">{result.email}</span> is now{" "}
           <span className="font-bold text-ink">{ROLE_LABELS[result.role]}</span>.
         </p>
-        {result.totp_secret ? (
-          <div className="rounded-panel border border-border p-3">
-            <p className="text-[12.5px] text-ink-soft">
-              {ROLE_LABELS[result.role]} requires an authenticator app and this account didn&apos;t have one set
-              up. Have them add this secret before their next sign-in — it won&apos;t be shown again:
-            </p>
-            <p className="mt-2 break-all font-mono text-[12px] font-bold text-ink">{result.totp_secret}</p>
-          </div>
-        ) : (
-          <p className="text-[12.5px] text-ink-soft">
-            The new role takes effect the next time {result.email} signs in.
-          </p>
-        )}
+        <p className="text-[12.5px] text-ink-soft">
+          The new role takes effect the next time {result.email} signs in.
+        </p>
         <div className="mt-auto flex justify-end pt-4">
           <Button onClick={onClose}>Done</Button>
         </div>
