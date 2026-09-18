@@ -1892,6 +1892,15 @@ export interface MembershipCreateOut extends MembershipOut {
   totp_provisioning_uri: string | null;
 }
 
+export interface MembershipRoleUpdateOut {
+  id: string;
+  account_id: string;
+  email: string;
+  role: Role;
+  totp_secret: string | null;
+  totp_provisioning_uri: string | null;
+}
+
 export interface EffectivePermissions {
   membership_id: string;
   role: string;
