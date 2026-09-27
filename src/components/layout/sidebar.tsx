@@ -8,6 +8,7 @@ import {
   Banknote,
   BarChart3,
   Bell,
+  BookOpenCheck,
   BookText,
   Boxes,
   Building2,
@@ -30,7 +31,6 @@ import {
   History,
   KeyRound,
   Landmark,
-  Laptop,
   LayoutDashboard,
   Link2,
   ListChecks,
@@ -84,7 +84,6 @@ const ICONS: Record<NavItem["icon"], typeof LayoutDashboard> = {
   learning: GraduationCap,
   employeeRelations: Gavel,
   unionDues: Users2,
-  assets: Laptop,
   integrations: Link2,
   approvalWorkflows: Workflow,
   auditLog: History,
@@ -115,6 +114,7 @@ const ICONS: Record<NavItem["icon"], typeof LayoutDashboard> = {
   tasks: ListChecks,
   calendar: CalendarDays,
   publicHolidays: CalendarOff,
+  balanceSheet: BookOpenCheck,
   security: Lock,
 };
 

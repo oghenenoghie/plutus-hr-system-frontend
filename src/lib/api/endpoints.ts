@@ -9,9 +9,6 @@ import type {
   ApprovalRequestType,
   ApprovalWorkflowStep,
   ApprovalWorkflowStepInput,
-  AssetAssignment,
-  AssetAssignmentCreateBody,
-  AssetAssignmentReturnBody,
   AttendanceRecord,
   AuditLogEntry,
   BalanceSheet,
@@ -39,9 +36,6 @@ import type {
   ChartAccountUpdateBody,
   ChecklistItem,
   ChecklistItemCreateBody,
-  CompanyAsset,
-  CompanyAssetCreateBody,
-  CompanyAssetUpdateBody,
   CompanyBankAccount,
   CompanyBankAccountCreateBody,
   Contractor,
@@ -81,6 +75,9 @@ import type {
   FinalSettlement,
   FinalSettlementCreateBody,
   FixedAsset,
+  FixedAssetAssignment,
+  FixedAssetAssignmentCreateBody,
+  FixedAssetAssignmentReturnBody,
   FixedAssetCreateBody,
   FixedAssetDisposeBody,
   FixedAssetRevalueBody,
@@ -108,6 +105,8 @@ import type {
   MembershipCreateBody,
   MembershipCreateOut,
   MembershipOut,
+  MembershipRoleUpdateOut,
+  MyFixedAsset,
   Notification,
   NotificationBroadcastBody,
   NotificationUnreadCount,
@@ -155,6 +154,7 @@ import type {
   RecurringInvoice,
   RecurringInvoiceCreateBody,
   RemindersSummary,
+  Role,
   RuleVersion,
   Shift,
   ShiftCreateBody,
@@ -508,33 +508,6 @@ export const unionMembershipsApi = {
     }),
 };
 
-// --- company assets ---
-
-export const companyAssetsApi = {
-  list: () => apiFetch<CompanyAsset[]>("/company-assets"),
-  get: (id: string) => apiFetch<CompanyAsset>(`/company-assets/${id}`),
-  mine: () => apiFetch<AssetAssignment[]>("/company-assets/me"),
-  create: (body: CompanyAssetCreateBody) =>
-    apiFetch<CompanyAsset>("/company-assets", { method: "POST", body }),
-  update: (id: string, body: CompanyAssetUpdateBody) =>
-    apiFetch<CompanyAsset>(`/company-assets/${id}`, { method: "PATCH", body }),
-  assignments: (id: string) =>
-    apiFetch<AssetAssignment[]>(`/company-assets/${id}/assignments`),
-  assign: (id: string, body: AssetAssignmentCreateBody) =>
-    apiFetch<AssetAssignment>(`/company-assets/${id}/assignments`, {
-      method: "POST",
-      body,
-    }),
-  returnAssignment: (assignmentId: string, body: AssetAssignmentReturnBody) =>
-    apiFetch<AssetAssignment>(
-      `/company-assets/assignments/${assignmentId}/return`,
-      {
-        method: "POST",
-        body,
-      },
-    ),
-};
-
 // --- api keys ---
 
 export const apiKeysApi = {
@@ -716,6 +689,7 @@ export const financialStatementsApi = {
 
 export const fixedAssetsApi = {
   list: () => apiFetch<FixedAsset[]>("/fixed-assets"),
+  mine: () => apiFetch<MyFixedAsset[]>("/fixed-assets/me"),
   create: (body: FixedAssetCreateBody) =>
     apiFetch<FixedAsset>("/fixed-assets", { method: "POST", body }),
   depreciate: (id: string) =>
@@ -725,6 +699,18 @@ export const fixedAssetsApi = {
     }),
   dispose: (id: string, body: FixedAssetDisposeBody) =>
     apiFetch<FixedAsset>(`/fixed-assets/${id}/dispose`, {
+      method: "POST",
+      body,
+    }),
+  assignments: (id: string) =>
+    apiFetch<FixedAssetAssignment[]>(`/fixed-assets/${id}/assignments`),
+  assign: (id: string, body: FixedAssetAssignmentCreateBody) =>
+    apiFetch<FixedAssetAssignment>(`/fixed-assets/${id}/assignments`, {
+      method: "POST",
+      body,
+    }),
+  returnAssignment: (assignmentId: string, body: FixedAssetAssignmentReturnBody) =>
+    apiFetch<FixedAssetAssignment>(`/fixed-assets/assignments/${assignmentId}/return`, {
       method: "POST",
       body,
     }),
@@ -1402,6 +1388,11 @@ export const membershipsApi = {
   list: () => apiFetch<MembershipOut[]>("/memberships"),
   create: (body: MembershipCreateBody) =>
     apiFetch<MembershipCreateOut>("/memberships", { method: "POST", body }),
+  updateRole: (membershipId: string, role: Role) =>
+    apiFetch<MembershipRoleUpdateOut>(`/memberships/${membershipId}/role`, {
+      method: "PUT",
+      body: { role },
+    }),
   effectivePermissions: (membershipId: string) =>
     apiFetch<EffectivePermissions>(`/memberships/${membershipId}/permissions`),
   setOverride: (membershipId: string, body: PermissionOverrideBody) =>

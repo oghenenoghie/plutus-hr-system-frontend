@@ -26,7 +26,6 @@ export interface NavItem {
     | "learning"
     | "employeeRelations"
     | "unionDues"
-    | "assets"
     | "integrations"
     | "generalLedger"
     | "bills"
@@ -53,6 +52,7 @@ export interface NavItem {
     | "tasks"
     | "calendar"
     | "publicHolidays"
+    | "balanceSheet"
     | "security";
   roles: Role[];
 }
@@ -250,12 +250,6 @@ export const NAV_GROUPS: NavGroup[] = [
             roles: ["admin", "payroll_manager", "manager", "accountant", "hr_manager", "auditor"],
           },
           {
-            href: "/assets",
-            label: "Company Assets",
-            icon: "assets",
-            roles: ["admin", "payroll_manager", "manager", "accountant", "auditor"],
-          },
-          {
             href: "/learning",
             label: "Learning and Development",
             icon: "learning",
@@ -342,21 +336,27 @@ export const NAV_GROUPS: NavGroup[] = [
         heading: "Financial Information",
         items: [
           {
-            href: "/general-ledger",
-            label: "General Ledger",
-            icon: "generalLedger",
-            roles: ["admin", "payroll_manager", "accountant", "auditor"],
-          },
-          {
             href: "/reports",
             label: "Financial Reports",
             icon: "reports",
             roles: ["admin", "payroll_manager", "accountant", "auditor"],
           },
           {
+            href: "/general-ledger",
+            label: "General Ledger",
+            icon: "generalLedger",
+            roles: ["admin", "payroll_manager", "accountant", "auditor"],
+          },
+          {
             href: "/financial-statements",
-            label: "Financial Statements",
+            label: "Profit and Loss Account",
             icon: "financialStatements",
+            roles: ["admin", "payroll_manager", "accountant", "auditor"],
+          },
+          {
+            href: "/balance-sheet",
+            label: "Balance Sheet",
+            icon: "balanceSheet",
             roles: ["admin", "payroll_manager", "accountant", "auditor"],
           },
           {
@@ -365,11 +365,12 @@ export const NAV_GROUPS: NavGroup[] = [
             icon: "bankReconciliation",
             roles: ["admin", "payroll_manager", "accountant", "auditor"],
           },
-        ],
-      },
-      {
-        heading: "Assets & Budgets",
-        items: [
+          {
+            href: "/audit-log",
+            label: "Audit Trail",
+            icon: "auditLog",
+            roles: ["admin", "payroll_manager", "accountant", "auditor"],
+          },
           {
             href: "/fixed-assets",
             label: "Fixed Assets",
@@ -406,12 +407,6 @@ export const NAV_GROUPS: NavGroup[] = [
         label: "Approval Workflows",
         icon: "approvalWorkflows",
         roles: ["admin"],
-      },
-      {
-        href: "/audit-log",
-        label: "Audit Log",
-        icon: "auditLog",
-        roles: ["admin", "payroll_manager", "accountant", "auditor"],
       },
       {
         href: "/document-generation",
