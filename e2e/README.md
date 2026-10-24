@@ -1,13 +1,14 @@
 # End-to-end tests
 
 Playwright tests of the inventory workflows (decision D16 in the backend's
-`docs/architecture/inventory-integration.md`), driven through the real
-screens against a running API and database.
+`docs/architecture/inventory-integration.md`) and of Analytics & Insights,
+driven through the real screens against a running API and database.
 
 | Spec | Covers |
 |---|---|
 | `inventory-lifecycle.spec.ts` | 1 item and warehouse · 2 purchase order and approval · 3 goods receipt · 4 stock balance and movement history · 5 stock issue · 6 valuation and journals reconcile · 7 transfer · 8 stocktake and an approved adjustment · 9 report export |
 | `inventory-permissions.spec.ts` | 10 an auditor reads but can't change; an HR manager has no inventory access, on screen or through the API |
+| `analytics.spec.ts` | Payroll analytics reconcile with the payroll-cost report · filters in the URL narrow every figure and survive the section tabs · drill-down and CSV export with metadata · charts from the keyboard and as a table · axe (WCAG 2.1 A and AA) and phone width on all ten pages · an HR manager can't open payroll analytics and an auditor can't open financial, on screen or through the API |
 | `inventory-ux.spec.ts` | Every inventory list and document page passes axe (WCAG 2.1 A and AA) and doesn't scroll sideways at phone width (390 px); the New Item drawer opens on its first field and Escape returns focus to the button |
 
 `global-setup.ts` signs up one fresh organisation per run (an admin, an
@@ -16,7 +17,8 @@ auditor and an HR manager) and saves their sign-ins under `e2e/.auth/`
 
 ## Running them
 
-Never point these at production: they create organisations and post stock.
+Never point these at production: they create organisations, employees and
+pay runs, and post stock.
 
 1. A database at the current migration, and the API connected as an
    **ordinary role**, so row-level security applies as it does in
