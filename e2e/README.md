@@ -9,6 +9,7 @@ driven through the real screens against a running API and database.
 | `inventory-lifecycle.spec.ts` | 1 item and warehouse · 2 purchase order and approval · 3 goods receipt · 4 stock balance and movement history · 5 stock issue · 6 valuation and journals reconcile · 7 transfer · 8 stocktake and an approved adjustment · 9 report export |
 | `inventory-permissions.spec.ts` | 10 an auditor reads but can't change; an HR manager has no inventory access, on screen or through the API |
 | `analytics.spec.ts` | Payroll analytics reconcile with the payroll-cost report · filters in the URL narrow every figure and survive the section tabs · drill-down and CSV export with metadata · charts from the keyboard and as a table · axe (WCAG 2.1 A and AA) and phone width on all ten pages · an HR manager can't open payroll analytics and an auditor can't open financial, on screen or through the API |
+| `countries.spec.ts` | Sign-up offers only countries with approved rules (Nigeria) and shows the five drafts as not available · Setup shows the organisation's country and currency and won't change to an unapproved one · the catalogue shows each country's readiness · the API refuses an unapproved country (422) and an HR manager's change (403) · axe and phone width |
 | `inventory-ux.spec.ts` | Every inventory list and document page passes axe (WCAG 2.1 A and AA) and doesn't scroll sideways at phone width (390 px); the New Item drawer opens on its first field and Escape returns focus to the button |
 
 `global-setup.ts` signs up one fresh organisation per run (an admin, an
