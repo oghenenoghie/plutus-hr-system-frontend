@@ -142,6 +142,9 @@ test.describe("a company in Kenya", () => {
       await expect(page.getByText("Tax ID number")).toBeVisible();
       await expect(page.getByText("NHF Number")).toHaveCount(0);
       await expect(page.getByText("Annual Basic (KES)")).toBeVisible();
+      // Inputs some countries' tax rules need, never Nigeria's.
+      await expect(page.getByText("Family shares (in halves)")).toBeVisible();
+      await expect(page.getByText("Expatriate status")).toBeVisible();
     });
   });
 });
@@ -166,6 +169,13 @@ test.describe("as a Nigerian admin", () => {
     await expect(page.getByLabel("RC number")).toBeVisible();
 
     expect(await accessibilityViolations(page)).toEqual([]);
+  });
+
+  test("Nigerian employee forms keep Nigeria's statutory fields only", async ({ page }) => {
+    await page.goto("/employees/new");
+    await expect(page.getByText("NHF Number")).toBeVisible();
+    await expect(page.getByText("Family shares (in halves)")).toHaveCount(0);
+    await expect(page.getByText("Expatriate status")).toHaveCount(0);
   });
 
   test("the catalogue shows where payroll runs", async ({ page }) => {
