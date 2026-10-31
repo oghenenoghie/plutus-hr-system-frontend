@@ -8,11 +8,14 @@ import { API_URL, AUTH_DIR, accessToken, api, dialogButton, savedToken, storageS
 // An organisation's country, through the real screens and the API. Any of
 // the six countries can be chosen at sign-up and applies at once: the
 // organisation's currency on every screen and its own registration fields.
-// Payroll waits for approved rules, so it's hidden and explained in a
-// country without them. Only Nigeria is active; the other five are drafts.
+// Every country runs payroll: Nigeria on its own rules, the other five on
+// rules approved by Plutus Technologies, with the figures their sources
+// didn't settle entered by each organisation under Tax Settings.
 
-const DRAFTED = ["The Gambia", "Rwanda", "Kenya", "Ghana", "Côte d'Ivoire"];
-const PAYROLL_ONLY = ["Payroll Runs", "Compliance Engine", "PAYE Calculator", "Payroll Reports", "Contractors"];
+const ENGINE_COUNTRIES = ["The Gambia", "Rwanda", "Kenya", "Ghana", "Côte d'Ivoire"];
+const PAYROLL_SCREENS = ["Payroll Runs", "Payroll Reports", "Final Settlement"];
+// Built on Nigeria's own rule tables: hidden and explained elsewhere.
+const NIGERIA_ONLY = ["Compliance Engine", "PAYE Calculator", "Simulation", "Contractors"];
 
 async function accessibilityViolations(page: Page): Promise<string[]> {
   const results = await new AxeBuilder({ page })
@@ -24,15 +27,15 @@ async function accessibilityViolations(page: Page): Promise<string[]> {
 }
 
 test.describe("signing up", () => {
-  test("offers every country, saying where payroll isn't available yet", async ({ page }) => {
+  test("offers every country, each with payroll", async ({ page }) => {
     await page.goto("/signup");
     const country = page.getByLabel("Country");
     await expect(country).toHaveValue("NG");
     await expect(country.locator('option[value="NG"]')).toHaveText("Nigeria (NGN)");
-    for (const name of DRAFTED) {
+    for (const name of ENGINE_COUNTRIES) {
       const option = country.locator("option", { hasText: name });
       await expect(option).toBeEnabled();
-      await expect(option).toContainText("payroll not available yet");
+      await expect(option).not.toContainText("payroll not available yet");
     }
     await country.selectOption("KE");
     await expect(page.getByText("Your workspace will run in KES")).toBeVisible();
@@ -74,17 +77,22 @@ test.describe("a company in Kenya", () => {
     await page.goto("/compliance/countries");
     await expect(page.getByRole("heading", { name: "Country Compliance" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Country Compliance" })).toBeVisible();
-    for (const label of PAYROLL_ONLY) {
+    for (const label of [...PAYROLL_SCREENS, "Tax Settings"]) {
+      await expect(page.getByRole("link", { name: label, exact: true })).toBeVisible();
+    }
+    for (const label of NIGERIA_ONLY) {
       await expect(page.getByRole("link", { name: label, exact: true })).toHaveCount(0);
     }
 
-    // Reached directly, a payroll screen explains instead of failing.
+    // Payroll says what it's waiting for.
     await page.goto("/payroll");
-    await expect(page.getByText("Payroll isn't available for Kenya yet")).toBeVisible();
-    await expect(page.getByText("Everything else works now, in KES")).toBeVisible();
+    await expect(page.getByText("Enter Kenya's Tax Settings before running payroll")).toBeVisible();
     expect(await accessibilityViolations(page)).toEqual([]);
+
+    // Reached directly, a screen for Nigeria's rules explains instead of failing.
     await page.goto("/calculator");
-    await expect(page.getByText("Payroll isn't available for Kenya yet")).toBeVisible();
+    await expect(page.getByText("This screen is for Nigeria's tax rules")).toBeVisible();
+    expect(await accessibilityViolations(page)).toEqual([]);
   });
 
   test.describe("signed in", () => {
@@ -95,7 +103,7 @@ test.describe("a company in Kenya", () => {
       const summary = page.locator("main dl").first();
       await expect(summary).toContainText("Kenya (KE)");
       await expect(summary).toContainText("KES");
-      await expect(summary).toContainText("Not available yet");
+      await expect(summary).toContainText("Available");
       await expect(page.getByLabel("Company registration number")).toBeVisible();
       await expect(page.getByText("Default PFA")).toHaveCount(0);
       await expect(page.getByText("States of operation")).toHaveCount(0);
@@ -146,6 +154,44 @@ test.describe("a company in Kenya", () => {
       await expect(page.getByText("Family shares (in halves)")).toBeVisible();
       await expect(page.getByText("Expatriate status")).toBeVisible();
     });
+
+    test("an admin enters Kenya's Tax Settings and sees the rules payroll will use", async ({ page }) => {
+      await page.goto("/tax-settings");
+      await expect(page.getByRole("heading", { name: "Tax Settings" })).toBeVisible();
+      await expect(page.getByText("Payroll can't run until these 2 figures are entered")).toBeVisible();
+      await expect(page.getByText(/Approved by Plutus Technologies/)).toBeVisible();
+      await expect(page.getByText("Nothing entered yet.")).toBeVisible();
+      expect(await accessibilityViolations(page)).toEqual([]);
+
+      await page.getByLabel("Is the employee's NSSF contribution deducted before PAYE?").selectOption("yes");
+      // The deadline is asked for only once the levy applies.
+      await expect(page.getByLabel("Day of the following month the NITA levy is due")).toHaveCount(0);
+      await page.getByLabel("Does your organisation pay the NITA industrial training levy?").selectOption("yes");
+      await page.getByRole("button", { name: /^Use 5:/ }).click();
+      await expect(page.getByLabel("Day of the following month the NITA levy is due")).toHaveValue("5");
+      await page.getByLabel("Note (optional)").fill("Checked with our accountant");
+      await page.getByRole("button", { name: "Save 3 figures" }).click();
+      await toast(page, /3 figures saved from/);
+
+      await expect(page.getByText(/Payroll can't run until/)).toHaveCount(0);
+      await expect(page.getByRole("heading", { name: "The rules as they stand today" })).toBeVisible();
+      const nita = page.getByRole("row", { name: /^Industrial Training Levy \(NITA\)/ });
+      await expect(nita).toContainText("KES 50.00 a month");
+      await expect(nita).toContainText("Day 5 of the following month");
+      await expect(page.getByRole("row", { name: /Checked with our accountant/ })).toHaveCount(3);
+      expect(await accessibilityViolations(page)).toEqual([]);
+
+      await page.goto("/payroll");
+      await expect(page.getByRole("heading", { name: "Payroll Runs" })).toBeVisible();
+      await expect(page.getByText("Enter Kenya's Tax Settings before running payroll")).toHaveCount(0);
+    });
+
+    test("Tax Settings fits a phone without sideways page scrolling", async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto("/tax-settings");
+      await page.waitForLoadState("networkidle");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(391);
+    });
   });
 });
 
@@ -180,18 +226,20 @@ test.describe("as a Nigerian admin", () => {
 
   test("the catalogue shows where payroll runs", async ({ page }) => {
     await page.goto("/compliance/countries");
-    for (const label of PAYROLL_ONLY) {
+    for (const label of [...PAYROLL_SCREENS, ...NIGERIA_ONLY]) {
       await expect(page.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
-    const nigeria = page.getByRole("row", { name: /Nigeria/ });
-    await expect(nigeria).toContainText("Active");
-    await expect(nigeria).toContainText("Available");
-    for (const name of DRAFTED) {
+    // Nigeria's rules take no Tax Settings.
+    await expect(page.getByRole("link", { name: "Tax Settings", exact: true })).toHaveCount(0);
+    for (const name of ["Nigeria", ...ENGINE_COUNTRIES]) {
       const row = page.getByRole("row", { name: new RegExp(name) });
-      await expect(row).toContainText("Draft");
-      await expect(row).toContainText("Not yet");
+      await expect(row).toContainText("Active");
+      await expect(row).toContainText("Available");
     }
     expect(await accessibilityViolations(page)).toEqual([]);
+
+    await page.goto("/tax-settings");
+    await expect(page.getByText("Nigeria's rules take no Tax Settings")).toBeVisible();
   });
 
   test("the API refuses a country Plutus doesn't list", async ({ request }) => {
