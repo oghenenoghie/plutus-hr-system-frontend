@@ -1,7 +1,8 @@
 # End-to-end tests
 
 Playwright tests of the inventory workflows (decision D16 in the backend's
-`docs/architecture/inventory-integration.md`) and of Analytics & Insights,
+`docs/architecture/inventory-integration.md`), of Analytics & Insights and of
+fixed-asset depreciation,
 driven through the real screens against a running API and database.
 
 | Spec | Covers |
@@ -10,6 +11,7 @@ driven through the real screens against a running API and database.
 | `inventory-permissions.spec.ts` | 10 an auditor reads but can't change; an HR manager has no inventory access, on screen or through the API |
 | `analytics.spec.ts` | Payroll analytics reconcile with the payroll-cost report · filters in the URL narrow every figure and survive the section tabs · drill-down and CSV export with metadata · charts from the keyboard and as a table · axe (WCAG 2.1 A and AA) and phone width on all ten pages · an HR manager can't open payroll analytics and an auditor can't open financial, on screen or through the API |
 | `countries.spec.ts` | Sign-up offers all six countries with payroll · a Kenyan organisation runs in KES, sees its payroll screens and Tax Settings, not Nigeria's rule screens · payroll says which Tax Settings are missing until an admin enters them, then shows the rules it will use · Setup switches country before any history · the catalogue shows every country active · the API refuses an unlisted country (422) and an HR manager's change (403) · axe and phone width |
+| `fixed-assets.spec.ts` | An asset already owned comes on as an opening balance with the depreciation it had built up and keeps depreciating · the register's totals · its depreciation history · the balance sheet shows fixed assets at cost less accumulated depreciation, with Opening Balance Equity · axe |
 | `inventory-ux.spec.ts` | Every inventory list and document page passes axe (WCAG 2.1 A and AA) and doesn't scroll sideways at phone width (390 px); the New Item drawer opens on its first field and Escape returns focus to the button |
 
 `global-setup.ts` signs up one fresh organisation per run (an admin, an
