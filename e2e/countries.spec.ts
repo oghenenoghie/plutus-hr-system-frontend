@@ -149,7 +149,8 @@ test.describe("a company in Kenya", () => {
       await expect(page.getByPlaceholder("Region, county or province").first()).toBeVisible();
       await expect(page.getByText("Tax ID number")).toBeVisible();
       await expect(page.getByText("NHF Number")).toHaveCount(0);
-      await expect(page.getByText("Annual Basic (KES)")).toBeVisible();
+      // Pay is entered per pay period (monthly by default), as the payroll engine reads it.
+      await expect(page.getByText("Monthly Basic (KES)")).toBeVisible();
       // Inputs some countries' tax rules need, never Nigeria's.
       await expect(page.getByText("Family shares (in halves)")).toBeVisible();
       await expect(page.getByText("Expatriate status")).toBeVisible();

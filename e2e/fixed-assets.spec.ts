@@ -72,17 +72,31 @@ test("an asset already owned comes on with its depreciation and keeps depreciati
   expect(await accessibilityViolations(page)).toEqual([]);
 });
 
-test("the balance sheet shows fixed assets at cost less accumulated depreciation", async ({ page }) => {
+test("the balance sheet is vertical: fixed assets at cost less depreciation first, capital and reserves last", async ({
+  page,
+}) => {
   await page.goto("/balance-sheet");
-  const assets = page.getByRole("table").first();
-  await expect(assets.getByRole("row", { name: /Fixed Assets at cost/ })).toContainText("₦1,200,000");
-  await expect(assets.getByRole("row", { name: /Less: Accumulated Depreciation/ })).toContainText("(₦400,000)");
-  await expect(assets.getByRole("row", { name: /Net book value of fixed assets/ })).toContainText("₦800,000");
+  const sheet = page.getByRole("table").first();
+  await expect(sheet.getByRole("row", { name: /Fixed Assets at cost/ })).toContainText("₦1,200,000");
+  await expect(sheet.getByRole("row", { name: /Less: 1590\s+Accumulated Depreciation/ })).toContainText("(₦400,000)");
+  await expect(sheet.getByRole("row", { name: /^Net book value/ }).first()).toContainText("₦800,000");
   // The contra account appears once, inside the group.
-  await expect(assets.getByRole("row", { name: /^Accumulated Depreciation/ })).toHaveCount(0);
+  await expect(sheet.getByRole("row", { name: /^1590\s+Accumulated Depreciation/ })).toHaveCount(0);
   // Paid for before Plutus: the book value it came on at is equity, not cash.
-  await expect(page.getByRole("table").nth(1).getByRole("row", { name: /Opening Balance Equity/ })).toContainText(
-    "₦900,000",
-  );
+  await expect(sheet.getByRole("row", { name: /Opening Balance Equity/ })).toContainText("₦900,000");
+  // Fixed assets first, then current assets and liabilities, capital last, with
+  // the result to date as the profit and loss reserve.
+  const labels = await sheet.locator("tbody tr td:first-child").allInnerTexts();
+  const at = (label: string) => labels.findIndex((text) => text.trim() === label);
+  expect(at("NON-CURRENT ASSETS")).toBeLessThan(at("CURRENT ASSETS"));
+  expect(at("CURRENT ASSETS")).toBeLessThan(at("LESS: CURRENT LIABILITIES"));
+  expect(at("LESS: CURRENT LIABILITIES")).toBeLessThan(at("Net assets"));
+  expect(at("Net assets")).toBeLessThan(at("CAPITAL AND RESERVES"));
+  expect(at("Profit and Loss Reserve")).toBeGreaterThan(at("CAPITAL AND RESERVES"));
+  // Net assets equal capital and reserves.
+  const figure = async (label: RegExp) =>
+    (await sheet.getByRole("row", { name: label }).locator("td").last().innerText()).trim();
+  expect(await figure(/^Net assets/)).toBe(await figure(/^Total capital and reserves/));
+  await expect(page.getByText("ledger holds an unbalanced entry")).toHaveCount(0);
   expect(await accessibilityViolations(page)).toEqual([]);
 });
