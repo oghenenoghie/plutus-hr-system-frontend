@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Fragment, useState } from "react";
 
 import { ApprovalHistoryPanel } from "@/components/approval-history-panel";
+import { AccountCreateModal } from "@/components/accounting/account-create-modal";
+import { VendorCreateModal } from "@/components/accounting/vendor-create-modal";
 import { EmailPdfDrawer } from "@/components/email-pdf-drawer";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,7 @@ import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/badge";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
+import { accountLabel, byNumber, canCreateCounterparties } from "@/lib/accounting";
 import { ApiError } from "@/lib/api/client";
 import {
   approvalInstancesApi,
@@ -28,9 +31,11 @@ import {
   goodsReceiptsApi,
   vendorsApi,
 } from "@/lib/api/endpoints";
+import { useAuth } from "@/lib/auth/auth-context";
 import { currencyLabel, formatDate, formatMoney, fromMinorUnits, toMinorUnits } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
-import type { ApprovalInstance, Bill, GoodsReceipt } from "@/lib/types";
+import { withCreated } from "@/lib/records";
+import type { ApprovalInstance, Bill, ChartAccount, GoodsReceipt, Vendor } from "@/lib/types";
 
 export default function BillsPage() {
   const bills = useApiResource(() => billsApi.list());
@@ -214,7 +219,7 @@ export default function BillsPage() {
                             label="Mark Paid"
                             tone="primary"
                             confirmTitle="Mark this vendor bill as paid?"
-                            confirmMessage={`This clears ${formatMoney(bill.amount_minor)} from accounts payable against cash.`}
+                            confirmMessage={`This clears ${formatMoney(bill.amount_minor)} from accounts payable against Cash and Bank.`}
                             confirmLabel="Mark Paid"
                           />
                         ) : null}
@@ -225,6 +230,11 @@ export default function BillsPage() {
                         >
                           {expandedId === bill.id ? "Hide" : "History"}
                         </Button>
+                        <Link href={`/print/bills/${bill.id}`}>
+                          <Button size="md" variant="secondary">
+                            View &amp; Print
+                          </Button>
+                        </Link>
                         <Button
                           size="md"
                           variant="secondary"
@@ -296,7 +306,14 @@ function NewBillDrawer({
   const vendors = useApiResource(() => vendorsApi.list());
   const accounts = useApiResource(() => chartAccountsApi.list());
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [vendorId, setVendorId] = useState("");
+  const [creatingVendor, setCreatingVendor] = useState(false);
+  // Vendors added from this form, kept as options alongside the list.
+  const [createdVendors, setCreatedVendors] = useState<Vendor[]>([]);
+  const vendorOptions = withCreated(vendors.data, createdVendors);
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [createdAccounts, setCreatedAccounts] = useState<ChartAccount[]>([]);
   const [billNumber, setBillNumber] = useState("");
   const [billDate, setBillDate] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -306,6 +323,7 @@ function NewBillDrawer({
   const [whtCategory, setWhtCategory] = useState<"" | "goods" | "services">("");
   const [description, setDescription] = useState("");
   const [goodsReceiptId, setGoodsReceiptId] = useState("");
+  const [postNow, setPostNow] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   // D2: posted goods receipts from this vendor that no bill invoices yet.
   // Fails (and the field hides) when inventory is off or not visible.
@@ -319,15 +337,15 @@ function NewBillDrawer({
   const linkable = (receipts.data ?? []).filter((receipt) => receipt.accrued_minor);
   const linked = linkable.find((receipt) => receipt.id === goodsReceiptId);
 
-  const expenseAccounts = (accounts.data ?? []).filter(
-    (account) => account.type === "expense" && account.is_active,
-  );
+  const expenseAccounts = withCreated(accounts.data, createdAccounts)
+    .filter((account) => account.type === "expense" && account.is_active)
+    .sort(byNumber);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSubmitting(true);
     try {
-      await billsApi.create({
+      const bill = await billsApi.create({
         vendor_id: vendorId,
         bill_number: billNumber,
         bill_date: billDate,
@@ -339,6 +357,24 @@ function NewBillDrawer({
         description: description || null,
         goods_receipt_id: goodsReceiptId || null,
       });
+      if (postNow) {
+        try {
+          const approved = await billsApi.approve(bill.id);
+          showToast(
+            approved.status === "approved"
+              ? `Bill ${bill.bill_number} posted: the expense and accounts payable`
+              : `Bill ${bill.bill_number} saved; it posts once its approvals are complete`,
+            "good",
+          );
+        } catch (err) {
+          showToast(
+            `Bill ${bill.bill_number} saved as a draft, not posted: ${err instanceof ApiError ? String(err.detail ?? err.message) : "approval failed"}`,
+            "bad",
+          );
+        }
+      } else {
+        showToast(`Bill ${bill.bill_number} saved as a draft`, "good");
+      }
       onCreated();
     } catch (err) {
       showToast(
@@ -355,7 +391,14 @@ function NewBillDrawer({
     <Drawer title="New Vendor Bill" onClose={onClose}>
       <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
         <div>
-          <Label htmlFor="vendor">Vendor</Label>
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <Label htmlFor="vendor">Vendor</Label>
+            {canCreateCounterparties(user?.role) ? (
+              <Button type="button" size="md" variant="secondary" onClick={() => setCreatingVendor(true)}>
+                + New Vendor
+              </Button>
+            ) : null}
+          </div>
           <Select
             id="vendor"
             value={vendorId}
@@ -366,7 +409,7 @@ function NewBillDrawer({
             required
           >
             <option value="">Select vendor</option>
-            {(vendors.data ?? []).map((vendor) => (
+            {vendorOptions.map((vendor) => (
               <option key={vendor.id} value={vendor.id}>
                 {vendor.name}
               </option>
@@ -432,7 +475,14 @@ function NewBillDrawer({
           </div>
         </div>
         <div>
-          <Label htmlFor="expenseAccount">{linked ? "Price Difference Account" : "Expense Account"}</Label>
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <Label htmlFor="expenseAccount">{linked ? "Price Difference Account" : "Expense Account"}</Label>
+            {canCreateCounterparties(user?.role) ? (
+              <Button type="button" size="md" variant="secondary" onClick={() => setCreatingAccount(true)}>
+                + New Account
+              </Button>
+            ) : null}
+          </div>
           <Select
             id="expenseAccount"
             value={expenseAccountCode}
@@ -442,7 +492,7 @@ function NewBillDrawer({
             <option value="">Select expense account</option>
             {expenseAccounts.map((account) => (
               <option key={account.id} value={account.code}>
-                {account.name}
+                {accountLabel(account)} · {account.category === "cost_of_sales" ? "cost of sales" : "overheads"}
               </option>
             ))}
           </Select>
@@ -492,6 +542,20 @@ function NewBillDrawer({
             rows={2}
           />
         </div>
+        <label className="flex items-start gap-2 text-[13px]">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={postNow}
+            onChange={(event) => setPostNow(event.target.checked)}
+          />
+          <span>
+            Post to the books now (approve)
+            <span className="block text-[11px] text-ink-soft">
+              Records the expense in the profit and loss account and the amount in accounts payable until it&apos;s paid. Untick to keep it as a draft for someone else to approve.
+            </span>
+          </span>
+        </label>
         <div className="mt-auto flex justify-end gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
@@ -501,6 +565,30 @@ function NewBillDrawer({
           </Button>
         </div>
       </form>
+      {creatingVendor ? (
+        <VendorCreateModal
+          onClose={() => setCreatingVendor(false)}
+          onCreated={(vendor) => {
+            setCreatedVendors((current) => [...current, vendor]);
+            // Same as picking a vendor from the list: a receipt belongs to
+            // one vendor, and a vendor created just now has none to link.
+            setVendorId(vendor.id);
+            setGoodsReceiptId("");
+            setCreatingVendor(false);
+          }}
+        />
+      ) : null}
+      {creatingAccount ? (
+        <AccountCreateModal
+          categories={["operating_expense", "cost_of_sales"]}
+          onClose={() => setCreatingAccount(false)}
+          onCreated={(account) => {
+            setCreatedAccounts((current) => [...current, account]);
+            setExpenseAccountCode(account.code);
+            setCreatingAccount(false);
+          }}
+        />
+      ) : null}
     </Drawer>
   );
 }
