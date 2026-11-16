@@ -293,39 +293,49 @@ function PayrollCostTrendChart({ payRuns }: { payRuns: PayRun[] }) {
   const barGap = 10;
   const barWidth = (width - barGap * (payRuns.length - 1)) / payRuns.length;
   const maxNet = Math.max(...payRuns.map((run) => run.net_minor), 1);
+  const firstRun = payRuns[0];
+  const latestRun = payRuns[payRuns.length - 1];
+  const summary = firstRun && latestRun
+    ? `Net pay moved from ${formatMoney(firstRun.net_minor)} for the period ending ${formatDate(firstRun.period_end)} to ${formatMoney(latestRun.net_minor)} for the period ending ${formatDate(latestRun.period_end)}. Values are shown for the ${payRuns.length} most recent completed pay runs.`
+    : "No completed pay run data is available.";
 
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height + 22}`}
-      className="w-full"
-      role="img"
-      aria-label="Net pay across recent pay runs"
-    >
-      <line x1={0} y1={height} x2={width} y2={height} stroke="var(--color-border)" strokeWidth={1} />
-      {payRuns.map((run, index) => {
-        const barHeight = Math.max((run.net_minor / maxNet) * (height - 8), 2);
-        const x = index * (barWidth + barGap);
-        const y = height - barHeight;
-        return (
-          <g key={run.id}>
-            <rect x={x} y={y} width={barWidth} height={barHeight} rx={4} fill="var(--color-primary)">
-              <title>
-                {formatDate(run.period_end)} — {formatMoney(run.net_minor)}
-              </title>
-            </rect>
-            <text
-              x={x + barWidth / 2}
-              y={height + 16}
-              textAnchor="middle"
-              className="fill-ink-soft"
-              style={{ fontSize: 10, fontWeight: 700 }}
-            >
-              {new Date(run.period_end).toLocaleDateString("en-NG", { month: "short" })}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+    <figure className="min-w-0" aria-labelledby="payroll-cost-trend-description">
+      <svg
+        viewBox={`0 0 ${width} ${height + 22}`}
+        className="w-full"
+        role="img"
+        aria-labelledby="payroll-cost-trend-description"
+      >
+        <title id="payroll-cost-trend-description">Net pay across recent completed pay runs</title>
+        <desc>{summary}</desc>
+        <line x1={0} y1={height} x2={width} y2={height} stroke="var(--color-border)" strokeWidth={1} />
+        {payRuns.map((run, index) => {
+          const barHeight = Math.max((run.net_minor / maxNet) * (height - 8), 2);
+          const x = index * (barWidth + barGap);
+          const y = height - barHeight;
+          return (
+            <g key={run.id}>
+              <rect x={x} y={y} width={barWidth} height={barHeight} rx={4} fill="var(--color-primary)">
+                <title>
+                  {formatDate(run.period_end)} — {formatMoney(run.net_minor)}
+                </title>
+              </rect>
+              <text
+                x={x + barWidth / 2}
+                y={height + 16}
+                textAnchor="middle"
+                className="fill-ink-soft"
+                style={{ fontSize: 10, fontWeight: 700 }}
+              >
+                {new Date(run.period_end).toLocaleDateString("en-NG", { month: "short" })}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <figcaption className="sr-only">{summary}</figcaption>
+    </figure>
   );
 }
 
