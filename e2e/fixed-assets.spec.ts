@@ -5,9 +5,10 @@ import { api, dialogButton, savedToken, storageStateFor } from "./support";
 
 // Accumulated depreciation, through the real screens and the real ledger: an
 // asset the organisation already owned comes onto the books with the
-// depreciation it had built up, keeps depreciating from there, lists its
-// history, and the balance sheet shows fixed assets at cost less accumulated
-// depreciation, with the book value brought on as Opening Balance Equity.
+// depreciation it had built up, paid for by the owners (Share Capital), keeps
+// depreciating from there, lists its history, and the balance sheet shows
+// fixed assets as one summary — at cost, less accumulated depreciation and
+// amortisation — by account name, with nothing for accounts that hold nothing.
 
 const TAG = `FA-${Date.now().toString(36).toUpperCase()}`;
 
@@ -39,6 +40,8 @@ test("an asset already owned comes on with its depreciation and keeps depreciati
   await page.fill("#cost", "1200000");
   await page.fill("#usefulLifeMonths", "12");
   await page.fill("#openingDepreciation", "300000");
+  // Paid for by the owners: its book value is Share Capital, not a reserve.
+  await page.selectOption("#openingFunding", "share_capital");
   await expect(page.locator("#openingDepreciationHint")).toContainText("Book value brought on: ₦900,000");
   expect(await accessibilityViolations(page)).toEqual([]);
   await drawer.getByRole("button", { name: "Create Asset" }).click();
@@ -77,20 +80,27 @@ test("the balance sheet is vertical: fixed assets at cost less depreciation firs
 }) => {
   await page.goto("/balance-sheet");
   const sheet = page.getByRole("table").first();
-  await expect(sheet.getByRole("row", { name: /Fixed Assets at cost/ })).toContainText("₦1,200,000");
-  await expect(sheet.getByRole("row", { name: /Less: 1590\s+Accumulated Depreciation/ })).toContainText("(₦400,000)");
-  await expect(sheet.getByRole("row", { name: /^Net book value/ }).first()).toContainText("₦800,000");
-  // The contra account appears once, inside the group.
-  await expect(sheet.getByRole("row", { name: /^1590\s+Accumulated Depreciation/ })).toHaveCount(0);
-  // Paid for before Plutus: the book value it came on at is equity, not cash.
-  await expect(sheet.getByRole("row", { name: /Opening Balance Equity/ })).toContainText("₦900,000");
-  // Fixed assets first, then current assets and liabilities, capital last, with
-  // the result to date as the profit and loss reserve.
+  // One summary for every fixed asset account: at cost, less what's been
+  // written off, net — the register has the asset by asset breakdown.
+  await expect(sheet.getByRole("row", { name: /^Fixed assets at cost/ })).toContainText("₦1,200,000");
+  await expect(
+    sheet.getByRole("row", { name: /^Less: Accumulated depreciation and amortisation/ }),
+  ).toContainText("(₦400,000)");
+  await expect(sheet.getByRole("row", { name: /^Net fixed assets/ })).toContainText("₦800,000");
+  // Accounts by name, without their numbers.
   const labels = await sheet.locator("tbody tr td:first-child").allInnerTexts();
+  expect(labels.filter((text) => /^\d{4}\s/.test(text.trim()))).toEqual([]);
+  // Paid for by the owners before Plutus: the book value it came on at is
+  // share capital, and there's no Opening Balance Equity or Revaluation
+  // Surplus line holding nothing.
+  await expect(sheet.getByRole("row", { name: /^Share Capital/ })).toContainText("₦900,000");
+  await expect(sheet.getByRole("row", { name: /Opening Balance Equity/ })).toHaveCount(0);
+  await expect(sheet.getByRole("row", { name: /Revaluation Surplus/ })).toHaveCount(0);
+  // Fixed assets first, net assets, then capital and reserves, with the
+  // result to date as the profit and loss reserve.
   const at = (label: string) => labels.findIndex((text) => text.trim() === label);
-  expect(at("NON-CURRENT ASSETS")).toBeLessThan(at("CURRENT ASSETS"));
-  expect(at("CURRENT ASSETS")).toBeLessThan(at("LESS: CURRENT LIABILITIES"));
-  expect(at("LESS: CURRENT LIABILITIES")).toBeLessThan(at("Net assets"));
+  expect(at("FIXED ASSETS")).toBeGreaterThanOrEqual(0);
+  expect(at("FIXED ASSETS")).toBeLessThan(at("Net assets"));
   expect(at("Net assets")).toBeLessThan(at("CAPITAL AND RESERVES"));
   expect(at("Profit and Loss Reserve")).toBeGreaterThan(at("CAPITAL AND RESERVES"));
   // Net assets equal capital and reserves.
