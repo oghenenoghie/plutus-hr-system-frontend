@@ -27,7 +27,7 @@ export default function PayrollPage() {
       const matchesSearch = !query ||
         [run.frequency, run.period_start, run.period_end, payRunStatusLabel(run)]
           .some((value) => String(value).toLocaleLowerCase().includes(query));
-      return matchesSearch && (statusFilter === "all" || run.status === statusFilter);
+      return matchesSearch && (statusFilter === "all" || (statusFilter === "awaiting_payment" ? run.status === "locked" && !run.disbursed_at : run.status === statusFilter));
     });
   }, [runs, search, statusFilter]);
   const draftCount = runs.filter((run) => run.status === "draft").length;
@@ -61,12 +61,12 @@ export default function PayrollPage() {
           <button
             key={item.label}
             type="button"
-            aria-pressed={statusFilter === (item.label === "Draft runs" ? "draft" : item.label === "Ready to post" ? "validated" : "locked")}
+            aria-pressed={statusFilter === (item.label === "Draft runs" ? "draft" : item.label === "Ready to post" ? "validated" : "awaiting_payment")}
             onClick={() => setStatusFilter((current) => {
-              const next = item.label === "Draft runs" ? "draft" : item.label === "Ready to post" ? "validated" : "locked";
+              const next = item.label === "Draft runs" ? "draft" : item.label === "Ready to post" ? "validated" : "awaiting_payment";
               return current === next ? "all" : next;
             })}
-            className={`rounded-panel border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${statusFilter === (item.label === "Draft runs" ? "draft" : item.label === "Ready to post" ? "validated" : "locked") ? "border-primary bg-primary/5" : "border-border bg-surface hover:border-primary/40"}`}
+            className={`rounded-panel border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${statusFilter === (item.label === "Draft runs" ? "draft" : item.label === "Ready to post" ? "validated" : "awaiting_payment") ? "border-primary bg-primary/5" : "border-border bg-surface hover:border-primary/40"}`}
           >
             <div className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">{item.label}</div>
             <div className="mt-1 text-2xl font-extrabold tabular-nums">{payRuns.loading ? "—" : item.value.toLocaleString("en-NG")}</div>
@@ -93,6 +93,7 @@ export default function PayrollPage() {
             <label htmlFor="payroll-status" className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Run status</label>
             <select id="payroll-status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="w-full rounded-panel border border-border bg-surface px-[13px] py-[11px] text-[13px] text-ink outline-none focus:border-primary">
               <option value="all">All statuses</option>
+              <option value="awaiting_payment">Awaiting payment</option>
               {[...new Set(runs.map((run) => run.status))].sort().map((status) => <option key={status} value={status}>{titleCase(status)}</option>)}
             </select>
           </div>
