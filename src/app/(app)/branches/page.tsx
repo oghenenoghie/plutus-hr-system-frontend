@@ -43,6 +43,17 @@ export default function BranchesPage() {
         action={<Button onClick={() => setCreating(true)}>New Branch</Button>}
       />
 
+      <section aria-label="Branch overview" className="mb-4 grid gap-3 sm:grid-cols-3">
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Branches</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{branchList.length}</p><p className="mt-1 text-[12px] text-ink-soft">Recorded work locations</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Managers assigned</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{assignedManagers}</p><p className="mt-1 text-[12px] text-ink-soft">Locations with a manager</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Needs assignment</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{branchList.length - assignedManagers}</p><p className="mt-1 text-[12px] text-ink-soft">Locations without a manager</p></Card>
+      </section>
+      <Card className="mb-4 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1"><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search branch, state, address or manager" aria-label="Search branches by location or manager" /></div>
+          <div className="flex items-center justify-between gap-3"><span className="whitespace-nowrap text-[12px] font-bold text-ink-soft" aria-live="polite">{filteredBranches.length} of {branchList.length} branches</span>{search ? <Button size="md" variant="ghost" onClick={() => setSearch("")}>Clear search</Button> : null}</div>
+        </div>
+      </Card>
       <Card>
         {branches.loading ? <LoadingState /> : null}
         {branches.error ? <ErrorState message={branches.error} /> : null}
