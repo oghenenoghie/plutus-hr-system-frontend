@@ -34,9 +34,6 @@ export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2.5 sm:gap-4">
-        <div className="hidden rounded-badge border border-good/15 bg-good-tint px-3 py-1.5 text-[11px] font-semibold text-good-ink md:block">
-          {user?.org_name ?? "Workspace"}
-        </div>
         <NotificationBell />
         <div className="flex items-center gap-2 border-l border-border pl-3 sm:pl-4">
           <Avatar name={user?.role ?? "?"} size="md" />
