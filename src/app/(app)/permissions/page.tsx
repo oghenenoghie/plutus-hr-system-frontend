@@ -111,7 +111,10 @@ export default function PermissionsPage() {
                 <Input
                   id="member-search"
                   value={memberSearch}
-                  onChange={(event) => setMemberSearch(event.target.value)}
+                  onChange={(event) => {
+                    setMemberSearch(event.target.value);
+                    setMembershipId("");
+                  }}
                   placeholder="Search by email or role"
                   aria-label="Search workspace members by email or role"
                 />
