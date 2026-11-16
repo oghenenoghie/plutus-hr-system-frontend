@@ -42,6 +42,17 @@ export default function DepartmentsPage() {
         action={<Button onClick={() => setCreating(true)}>New Department</Button>}
       />
 
+      <section aria-label="Department overview" className="mb-4 grid gap-3 sm:grid-cols-3">
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Departments</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{departmentList.length}</p><p className="mt-1 text-[12px] text-ink-soft">Organisational units</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Managers assigned</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{assignedManagers}</p><p className="mt-1 text-[12px] text-ink-soft">Departments with a manager</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Needs assignment</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{departmentList.length - assignedManagers}</p><p className="mt-1 text-[12px] text-ink-soft">Departments without a manager</p></Card>
+      </section>
+      <Card className="mb-4 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1"><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search department or manager" aria-label="Search departments by name or manager" /></div>
+          <div className="flex items-center justify-between gap-3"><span className="whitespace-nowrap text-[12px] font-bold text-ink-soft" aria-live="polite">{filteredDepartments.length} of {departmentList.length} departments</span>{search ? <Button size="md" variant="ghost" onClick={() => setSearch("")}>Clear search</Button> : null}</div>
+        </div>
+      </Card>
       <Card>
         {departments.loading ? <LoadingState /> : null}
         {departments.error ? <ErrorState message={departments.error} /> : null}
