@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
@@ -42,7 +43,7 @@ export default function GeneralLedgerPage() {
   const balanceDifference = Math.abs(debitTotal - creditTotal);
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="General Ledger"
         subtitle="Every double-entry posting from payroll, WHT, and manual journal entries"
@@ -56,7 +57,17 @@ export default function GeneralLedgerPage() {
         }
       />
 
-      <section aria-label="Trial balance summary" className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <section aria-labelledby="ledger-position-heading" className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 id="ledger-position-heading" className="text-sm font-bold text-ink">Ledger position</h2>
+            <p className="mt-0.5 text-xs text-ink-soft">Control totals from the current trial balance.</p>
+          </div>
+          <Badge tone={trialBalance.loading ? "neutral" : balanceDifference === 0 ? "good" : "bad"}>
+            {trialBalance.loading ? "Checking balance" : balanceDifference === 0 ? "Debits equal credits" : "Review imbalance"}
+          </Badge>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
           { label: "Total debits", value: debitTotal },
           { label: "Total credits", value: creditTotal },
@@ -68,9 +79,10 @@ export default function GeneralLedgerPage() {
             <div className="mt-1 text-xs text-ink-soft">{item.label === "Difference" ? (balanceDifference === 0 ? "Debits and credits agree" : "Review the trial balance") : "Across the current trial balance"}</div>
           </div>
         ))}
+        </div>
       </section>
 
-      <Card className="mb-6">
+      <Card>
         <CardHeader title="Trial Balance" subtitle="Account-level debit and credit totals from the ledger" />
         {trialBalance.loading ? <LoadingState /> : null}
         {trialBalance.error ? <ErrorState message={trialBalance.error} /> : null}
@@ -120,6 +132,9 @@ export default function GeneralLedgerPage() {
                   ))}
                 </Select>
               </div>
+              {(entrySearch || departmentFilter) ? (
+                <Button size="sm" variant="ghost" onClick={() => { setEntrySearch(""); setDepartmentFilter(""); }}>Clear filters</Button>
+              ) : null}
             </div>
           }
         />
@@ -158,7 +173,7 @@ export default function GeneralLedgerPage() {
           </Table>
         ) : null}
         {entries.data && filteredEntries.length > 0 ? (
-          <p className="mt-3 text-xs text-ink-soft" aria-live="polite">{filteredEntries.length.toLocaleString("en-NG")} of {ledgerRows.length.toLocaleString("en-NG")} entries shown</p>
+          <p className="mt-3 text-xs text-ink-soft" aria-live="polite">Showing <span className="font-semibold tabular-nums text-ink">{filteredEntries.length.toLocaleString("en-NG")}</span> of {ledgerRows.length.toLocaleString("en-NG")} entries</p>
         ) : null}
       </Card>
 
