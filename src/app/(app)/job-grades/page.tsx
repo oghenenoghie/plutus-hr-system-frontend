@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import type { JobGrade } from "@/lib/types";
 export default function JobGradesPage() {
   const jobGrades = useApiResource(() => jobGradesApi.list());
   const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState<JobGrade | null>(null);
+  const [editing, setEditing] = useState<JobGrade | null>(null);\n  const [search, setSearch] = useState("");
 
   return (
     <div>
@@ -35,7 +35,7 @@ export default function JobGradesPage() {
         {jobGrades.data && jobGrades.data.length === 0 ? (
           <EmptyState label="No job grades on record yet." />
         ) : null}
-        {jobGrades.data && jobGrades.data.length > 0 ? (
+        {jobGrades.data && gradeList.length > 0 && filteredGrades.length === 0 ? (\n          <EmptyState label="No job grades match your search. Try another name or level, or clear the search." />\n        ) : null}\n        {jobGrades.data && filteredGrades.length > 0 ? (
           <Table>
             <Thead>
               <tr>
@@ -46,7 +46,7 @@ export default function JobGradesPage() {
               </tr>
             </Thead>
             <tbody>
-              {jobGrades.data.map((jobGrade) => (
+              {filteredGrades.map((jobGrade) => (
                 <tr key={jobGrade.id}>
                   <Td className="font-bold">{jobGrade.name}</Td>
                   <Td>{jobGrade.level ?? "—"}</Td>
