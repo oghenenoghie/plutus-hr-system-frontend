@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,13 @@ export default function JobGradesPage() {
   const jobGrades = useApiResource(() => jobGradesApi.list());
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<JobGrade | null>(null);
+  const [search, setSearch] = useState("");
+  const gradeList = jobGrades.data ?? [];
+  const salaryBandCount = gradeList.filter((grade) => grade.min_salary_minor != null || grade.max_salary_minor != null).length;
+  const filteredGrades = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase();
+    return gradeList.filter((grade) => !term || grade.name.toLocaleLowerCase().includes(term) || String(grade.level ?? "").includes(term));
+  }, [gradeList, search]);
 
   return (
     <div>
@@ -29,13 +36,27 @@ export default function JobGradesPage() {
         action={<Button onClick={() => setCreating(true)}>New Job Grade</Button>}
       />
 
+      <section aria-label="Job grade overview" className="mb-4 grid gap-3 sm:grid-cols-3">
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Job grades</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{gradeList.length}</p><p className="mt-1 text-[12px] text-ink-soft">Defined levels</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Salary bands</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{salaryBandCount}</p><p className="mt-1 text-[12px] text-ink-soft">Grades with a configured range</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">No salary band</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{gradeList.length - salaryBandCount}</p><p className="mt-1 text-[12px] text-ink-soft">Grades without a configured range</p></Card>
+      </section>
+      <Card className="mb-4 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1"><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search job grade or level" aria-label="Search job grades by name or level" /></div>
+          <div className="flex items-center justify-between gap-3"><span className="whitespace-nowrap text-[12px] font-bold text-ink-soft" aria-live="polite">{filteredGrades.length} of {gradeList.length} grades</span>{search ? <Button size="md" variant="ghost" onClick={() => setSearch("")}>Clear search</Button> : null}</div>
+        </div>
+      </Card>
       <Card>
         {jobGrades.loading ? <LoadingState /> : null}
         {jobGrades.error ? <ErrorState message={jobGrades.error} /> : null}
         {jobGrades.data && jobGrades.data.length === 0 ? (
           <EmptyState label="No job grades on record yet." />
         ) : null}
-        {jobGrades.data && jobGrades.data.length > 0 ? (
+        {jobGrades.data && gradeList.length > 0 && filteredGrades.length === 0 ? (
+          <EmptyState label="No job grades match your search. Try another name or level, or clear the search." />
+        ) : null}
+        {jobGrades.data && filteredGrades.length > 0 ? (
           <Table>
             <Thead>
               <tr>
@@ -46,7 +67,7 @@ export default function JobGradesPage() {
               </tr>
             </Thead>
             <tbody>
-              {jobGrades.data.map((jobGrade) => (
+              {filteredGrades.map((jobGrade) => (
                 <tr key={jobGrade.id}>
                   <Td className="font-bold">{jobGrade.name}</Td>
                   <Td>{jobGrade.level ?? "—"}</Td>
