@@ -41,6 +41,8 @@ export default function GeneralLedgerPage() {
   const debitTotal = (trialBalance.data ?? []).reduce((sum, line) => sum + line.total_debit_minor, 0);
   const creditTotal = (trialBalance.data ?? []).reduce((sum, line) => sum + line.total_credit_minor, 0);
   const balanceDifference = Math.abs(debitTotal - creditTotal);
+  const hasTrialBalance = Boolean(trialBalance.data?.length);
+  const isBalanced = hasTrialBalance && balanceDifference === 0;
 
   return (
     <div className="space-y-6">
@@ -63,8 +65,8 @@ export default function GeneralLedgerPage() {
             <h2 id="ledger-position-heading" className="text-sm font-bold text-ink">Ledger position</h2>
             <p className="mt-0.5 text-xs text-ink-soft">Control totals from the current trial balance.</p>
           </div>
-          <Badge tone={trialBalance.loading ? "neutral" : balanceDifference === 0 ? "good" : "bad"}>
-            {trialBalance.loading ? "Checking balance" : balanceDifference === 0 ? "Debits equal credits" : "Review imbalance"}
+          <Badge tone={trialBalance.loading || trialBalance.error || !hasTrialBalance ? "neutral" : isBalanced ? "good" : "bad"}>
+            {trialBalance.loading ? "Checking balance" : trialBalance.error ? "Balance unavailable" : !hasTrialBalance ? "No ledger activity" : isBalanced ? "Debits equal credits" : "Review imbalance"}
           </Badge>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -76,7 +78,7 @@ export default function GeneralLedgerPage() {
           <div key={item.label} className="rounded-panel border border-border bg-surface px-4 py-3">
             <div className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">{item.label}</div>
             <div className="mt-1 text-xl font-extrabold tabular-nums">{trialBalance.loading ? "—" : formatMoney(item.value)}</div>
-            <div className="mt-1 text-xs text-ink-soft">{item.label === "Difference" ? (balanceDifference === 0 ? "Debits and credits agree" : "Review the trial balance") : "Across the current trial balance"}</div>
+            <div className="mt-1 text-xs text-ink-soft">{item.label === "Difference" ? (isBalanced ? "Debits and credits agree" : hasTrialBalance ? "Review the trial balance" : "No balances to compare") : "Across the current trial balance"}</div>
           </div>
         ))}
         </div>
