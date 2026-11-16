@@ -19,7 +19,14 @@ import type { JobGrade } from "@/lib/types";
 export default function JobGradesPage() {
   const jobGrades = useApiResource(() => jobGradesApi.list());
   const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState<JobGrade | null>(null);\n  const [search, setSearch] = useState("");
+  const [editing, setEditing] = useState<JobGrade | null>(null);
+  const [search, setSearch] = useState("");
+  const gradeList = jobGrades.data ?? [];
+  const salaryBandCount = gradeList.filter((grade) => grade.min_salary_minor != null || grade.max_salary_minor != null).length;
+  const filteredGrades = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase();
+    return gradeList.filter((grade) => !term || grade.name.toLocaleLowerCase().includes(term) || String(grade.level ?? "").includes(term));
+  }, [gradeList, search]);
 
   return (
     <div>
@@ -35,7 +42,10 @@ export default function JobGradesPage() {
         {jobGrades.data && jobGrades.data.length === 0 ? (
           <EmptyState label="No job grades on record yet." />
         ) : null}
-        {jobGrades.data && gradeList.length > 0 && filteredGrades.length === 0 ? (\n          <EmptyState label="No job grades match your search. Try another name or level, or clear the search." />\n        ) : null}\n        {jobGrades.data && filteredGrades.length > 0 ? (
+        {jobGrades.data && gradeList.length > 0 && filteredGrades.length === 0 ? (
+          <EmptyState label="No job grades match your search. Try another name or level, or clear the search." />
+        ) : null}
+        {jobGrades.data && filteredGrades.length > 0 ? (
           <Table>
             <Thead>
               <tr>
