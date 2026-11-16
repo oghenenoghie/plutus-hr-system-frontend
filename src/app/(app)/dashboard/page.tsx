@@ -75,7 +75,14 @@ export default function DashboardPage() {
       {summary.error ? <ErrorState message={summary.error} /> : null}
 
       {summary.data ? (
-        <section aria-labelledby="overview-snapshot" className="space-y-3"><div className="flex items-center justify-between gap-3"><h2 id="overview-snapshot" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">Operational snapshot</h2><span className="text-[11px] font-semibold text-ink-soft">Current company position</span></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        <section aria-labelledby="overview-snapshot" className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="overview-snapshot" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">
+              Operational snapshot
+            </h2>
+            <span className="text-[11px] font-semibold text-ink-soft">Current company position</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <KpiTile label="Active Employees" value={summary.data.active_employee_count.toLocaleString("en-NG")} />
           <KpiTile
             label="Outstanding Liability"
@@ -94,7 +101,8 @@ export default function DashboardPage() {
             value={summary.data.expiring_contract_count.toLocaleString("en-NG")}
             caption="Within 30 days"
           />
-        </div></section>
+          </div>
+        </section>
       ) : null}
 
       {summary.data ? (
@@ -147,7 +155,16 @@ export default function DashboardPage() {
         </Card>
       ) : null}
 
-      <section aria-labelledby="payroll-activity" className="space-y-3"><div className="flex items-center justify-between gap-3"><h2 id="payroll-activity" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">Payroll activity</h2><Link href="/payroll" className="text-xs font-bold text-primary hover:underline">Open payroll workspace</Link></div><div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+      <section aria-labelledby="payroll-activity" className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="payroll-activity" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">
+            Payroll activity
+          </h2>
+          <Link href="/payroll" className="text-xs font-bold text-primary hover:underline">
+            Open payroll workspace
+          </Link>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <Card>
           <CardHeader title="Payroll Cost Trend" subtitle="Net pay across the last 6 completed pay runs" />
           {payRuns.loading ? <LoadingState /> : null}
@@ -199,9 +216,17 @@ export default function DashboardPage() {
             </Table>
           ) : null}
         </Card>
-      </div></section>
+        </div>
+      </section>
 
-      <section aria-labelledby="people-activity" className="space-y-3"><div className="flex items-center justify-between"><h2 id="people-activity" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">People</h2><span className="text-[11px] text-ink-soft">Recently added to your organisation</span></div><Card>
+      <section aria-labelledby="people-activity" className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="people-activity" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">
+            People
+          </h2>
+          <span className="text-[11px] text-ink-soft">Recently added to your organisation</span>
+        </div>
+        <Card>
         <CardHeader
           title="Recently Added Employees"
           action={
@@ -238,9 +263,17 @@ export default function DashboardPage() {
             </tbody>
           </Table>
         ) : null}
-      </Card></section>
+        </Card>
+      </section>
 
-      <section aria-labelledby="compliance-deadlines" className="space-y-3"><div className="flex items-center justify-between"><h2 id="compliance-deadlines" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">Compliance</h2><span className="text-[11px] text-ink-soft">Upcoming obligations and remittances</span></div><Card>
+      <section aria-labelledby="compliance-deadlines" className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="compliance-deadlines" className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-dark">
+            Compliance
+          </h2>
+          <span className="text-[11px] text-ink-soft">Upcoming obligations and remittances</span>
+        </div>
+        <Card>
         <CardHeader title="Upcoming Statutory Deadlines" subtitle="Filings and remittances due within 30 days" />
         {deadlines.loading ? <LoadingState /> : null}
         {deadlines.error ? <ErrorState message={deadlines.error} /> : null}
@@ -275,7 +308,8 @@ export default function DashboardPage() {
             </tbody>
           </Table>
         ) : null}
-      </Card></section>
+        </Card>
+      </section>
 
       {broadcasting ? <BroadcastDrawer onClose={() => setBroadcasting(false)} /> : null}
     </div>
