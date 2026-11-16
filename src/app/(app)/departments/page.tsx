@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,18 @@ export default function DepartmentsPage() {
   const employees = useApiResource(() => employeesApi.list());
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Department | null>(null);
+  const [search, setSearch] = useState("");
 
   const employeesById = new Map((employees.data ?? []).map((employee) => [employee.id, employee]));
+  const departmentList = departments.data ?? [];
+  const assignedManagers = departmentList.filter((department) => Boolean(department.manager_id)).length;
+  const filteredDepartments = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase();
+    return departmentList.filter((department) => {
+      const manager = department.manager_id ? employeesById.get(department.manager_id)?.full_name ?? "" : "";
+      return !term || department.name.toLocaleLowerCase().includes(term) || manager.toLocaleLowerCase().includes(term);
+    });
+  }, [departmentList, employeesById, search]);
 
   return (
     <div>
@@ -38,7 +48,7 @@ export default function DepartmentsPage() {
         {departments.data && departments.data.length === 0 ? (
           <EmptyState label="No departments on record yet." />
         ) : null}
-        {departments.data && departments.data.length > 0 ? (
+        {departments.data && departmentList.length > 0 && filteredDepartments.length === 0 ? (\n          <EmptyState label="No departments match your search. Try another name or manager, or clear the search." />\n        ) : null}\n        {departments.data && filteredDepartments.length > 0 ? (
           <Table>
             <Thead>
               <tr>
@@ -48,7 +58,7 @@ export default function DepartmentsPage() {
               </tr>
             </Thead>
             <tbody>
-              {departments.data.map((department) => {
+              {filteredDepartments.map((department) => {
                 const manager = department.manager_id ? employeesById.get(department.manager_id) : null;
                 return (
                   <tr key={department.id}>
