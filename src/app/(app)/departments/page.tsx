@@ -48,7 +48,10 @@ export default function DepartmentsPage() {
         {departments.data && departments.data.length === 0 ? (
           <EmptyState label="No departments on record yet." />
         ) : null}
-        {departments.data && departmentList.length > 0 && filteredDepartments.length === 0 ? (\n          <EmptyState label="No departments match your search. Try another name or manager, or clear the search." />\n        ) : null}\n        {departments.data && filteredDepartments.length > 0 ? (
+        {departments.data && departmentList.length > 0 && filteredDepartments.length === 0 ? (
+          <EmptyState label="No departments match your search. Try another name or manager, or clear the search." />
+        ) : null}
+        {departments.data && filteredDepartments.length > 0 ? (
           <Table>
             <Thead>
               <tr>
