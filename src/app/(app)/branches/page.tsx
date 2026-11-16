@@ -21,9 +21,19 @@ export default function BranchesPage() {
   const branches = useApiResource(() => branchesApi.list());
   const employees = useApiResource(() => employeesApi.list());
   const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState<Branch | null>(null);\n  const [search, setSearch] = useState("");
+  const [editing, setEditing] = useState<Branch | null>(null);
+  const [search, setSearch] = useState("");
 
-  const employeesById = new Map((employees.data ?? []).map((employee) => [employee.id, employee]));\n  const branchList = branches.data ?? [];\n  const assignedManagers = branchList.filter((branch) => Boolean(branch.manager_id)).length;\n  const filteredBranches = useMemo(() => {\n    const term = search.trim().toLocaleLowerCase();\n    return branchList.filter((branch) => {\n      const manager = branch.manager_id ? employeesById.get(branch.manager_id)?.full_name ?? "" : "";\n      return !term || [branch.name, branch.state ?? "", branch.address ?? "", manager].some((value) => value.toLocaleLowerCase().includes(term));\n    });\n  }, [branchList, employeesById, search]);
+  const employeesById = new Map((employees.data ?? []).map((employee) => [employee.id, employee]));
+  const branchList = branches.data ?? [];
+  const assignedManagers = branchList.filter((branch) => Boolean(branch.manager_id)).length;
+  const filteredBranches = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase();
+    return branchList.filter((branch) => {
+      const manager = branch.manager_id ? employeesById.get(branch.manager_id)?.full_name ?? "" : "";
+      return !term || [branch.name, branch.state ?? "", branch.address ?? "", manager].some((value) => value.toLocaleLowerCase().includes(term));
+    });
+  }, [branchList, employeesById, search]);
 
   return (
     <div>
@@ -39,7 +49,10 @@ export default function BranchesPage() {
         {branches.data && branches.data.length === 0 ? (
           <EmptyState label="No branches on record yet." />
         ) : null}
-        {branches.data && branchList.length > 0 && filteredBranches.length === 0 ? (\n          <EmptyState label="No branches match your search. Try another location or manager, or clear the search." />\n        ) : null}\n        {branches.data && filteredBranches.length > 0 ? (
+        {branches.data && branchList.length > 0 && filteredBranches.length === 0 ? (
+          <EmptyState label="No branches match your search. Try another location or manager, or clear the search." />
+        ) : null}
+        {branches.data && filteredBranches.length > 0 ? (
           <Table>
             <Thead>
               <tr>
