@@ -83,12 +83,12 @@ test("inventory screens fit a phone without sideways page scrolling", async ({ p
   expect(overflowing).toEqual([]);
 });
 
-test("forms in a drawer work from the keyboard", async ({ page }) => {
+test("forms in a modal work from the keyboard", async ({ page }) => {
   await page.goto("/inventory/items");
   const opener = page.getByRole("button", { name: "New Item" });
   await opener.focus();
   await page.keyboard.press("Enter");
-  // Focus moves into the drawer, which screen readers announce by its title.
+  // Focus moves into the modal, which screen readers announce by its title.
   await expect(page.getByRole("dialog", { name: "New Item" })).toBeVisible();
   await expect(page.locator("#item-sku")).toBeFocused();
   await page.keyboard.press("Escape");

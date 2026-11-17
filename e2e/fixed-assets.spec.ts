@@ -32,7 +32,7 @@ test.beforeAll(async ({ request }) => {
 test("an asset already owned comes on with its depreciation and keeps depreciating", async ({ page }) => {
   await page.goto("/fixed-assets");
   await page.getByRole("button", { name: "New Fixed Asset" }).click();
-  const drawer = page.getByRole("dialog", { name: "New Fixed Asset" });
+  const form = page.getByRole("dialog", { name: "New Fixed Asset" });
   await page.fill("#name", "Delivery Van");
   await page.fill("#assetTag", TAG);
   await page.fill("#acquisitionDate", "2024-01-01");
@@ -44,8 +44,8 @@ test("an asset already owned comes on with its depreciation and keeps depreciati
   await page.selectOption("#openingFunding", "share_capital");
   await expect(page.locator("#openingDepreciationHint")).toContainText("Book value brought on: ₦900,000");
   expect(await accessibilityViolations(page)).toEqual([]);
-  await drawer.getByRole("button", { name: "Create Asset" }).click();
-  await expect(drawer).toBeHidden();
+  await form.getByRole("button", { name: "Create Asset" }).click();
+  await expect(form).toBeHidden();
 
   const row = page.getByRole("row", { name: new RegExp(TAG) });
   await expect(row).toContainText("₦300,000");

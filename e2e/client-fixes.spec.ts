@@ -164,12 +164,12 @@ test("2. an invoice charges VAT at 7.5% or a named rate and prints our TIN at th
   }
 
   await newInvoice("100000", { label: "VAT 7.5%" });
-  const drawer = page.getByRole("dialog", { name: "New Customer Invoice" });
-  await expect(drawer.getByText("₦7,500")).toBeVisible();
-  await expect(drawer.getByText("₦107,500")).toBeVisible();
+  const invoiceForm = page.getByRole("dialog", { name: "New Customer Invoice" });
+  await expect(invoiceForm.getByText("₦7,500")).toBeVisible();
+  await expect(invoiceForm.getByText("₦107,500")).toBeVisible();
   expect(await accessibilityViolations(page)).toEqual([]);
-  await drawer.getByRole("button", { name: "Create Customer Invoice" }).click();
-  await expect(drawer).toBeHidden();
+  await invoiceForm.getByRole("button", { name: "Create Customer Invoice" }).click();
+  await expect(invoiceForm).toBeHidden();
   await expect(page.getByRole("cell", { name: /₦107,500/ })).toBeVisible();
 
   await newInvoice("100000", { label: "Other rate", name: "Ghana VAT 15%", percent: "15" });
