@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/data-state";
-import { Drawer } from "@/components/ui/drawer";
+import { Modal } from "@/components/ui/modal";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Table, Td, Th, Thead } from "@/components/ui/table";
@@ -180,7 +180,7 @@ export default function GeneralLedgerPage() {
       </Card>
 
       {posting ? (
-        <NewJournalEntryDrawer
+        <NewJournalEntryModal
           onClose={() => setPosting(false)}
           onPosted={() => {
             setPosting(false);
@@ -203,7 +203,7 @@ function emptyLine(): DraftLine {
   return { accountCode: "", side: "debit", amount: "" };
 }
 
-function NewJournalEntryDrawer({
+function NewJournalEntryModal({
   onClose,
   onPosted,
 }: {
@@ -263,7 +263,7 @@ function NewJournalEntryDrawer({
   }
 
   return (
-    <Drawer title="New Journal Entry" onClose={onClose}>
+    <Modal title="New Journal Entry" onClose={onClose}>
       <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4">
         <div>
           <Label htmlFor="description">Description</Label>
@@ -351,6 +351,6 @@ function NewJournalEntryDrawer({
           </Button>
         </div>
       </form>
-    </Drawer>
+    </Modal>
   );
 }

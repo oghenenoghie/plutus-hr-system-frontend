@@ -104,12 +104,12 @@ test.describe("as an administrator", () => {
   test("drill-down lists the records behind a KPI, and exports them", async ({ page }) => {
     await page.goto(`/analytics/workforce?${PERIOD}&department_id=${salesId}`);
     await page.getByRole("button", { name: "Records behind Total employees" }).click();
-    const drawer = page.getByRole("dialog");
-    await expect(drawer.getByText("2 records for the filters on this page")).toBeVisible();
-    await expect(drawer.getByRole("table")).not.toContainText("Gross pay");
+    const records = page.getByRole("dialog");
+    await expect(records.getByText("2 records for the filters on this page")).toBeVisible();
+    await expect(records.getByRole("table")).not.toContainText("Gross pay");
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      drawer.getByRole("group", { name: "Export these records" }).getByRole("button", { name: "CSV" }).click(),
+      records.getByRole("group", { name: "Export these records" }).getByRole("button", { name: "CSV" }).click(),
     ]);
     const text = fs.readFileSync((await download.path())!, "utf8");
     expect(text).toContain("Employees in headcount");
