@@ -341,7 +341,7 @@ test("3. a vendor bill takes VAT from the dropdown and posts it as input VAT", a
   await dialog.getByLabel("Due Date").fill(lagosDate(30));
   await dialog.locator("#expenseAccount").selectOption({ index: 1 });
   const goodsReceipt = dialog.getByLabel("Goods receipt (if this bill covers received stock)");
-  await expect(goodsReceipt.locator("option", { has: ids.paperGoodsReceipt })).toHaveCount(1);
+  await expect(goodsReceipt.locator('option[value="' + ids.paperGoodsReceipt + '"]')).toHaveCount(1);
   await goodsReceipt.selectOption(ids.paperGoodsReceipt);
   await expect(dialog.getByText("Enter the VAT shown on the supplier's invoice here.")).toBeVisible();
   await dialog.getByLabel(/Amount before VAT/).fill("400000");
