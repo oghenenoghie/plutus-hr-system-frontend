@@ -22,7 +22,7 @@ export default function StockOnHandPage() {
   const [warehouseId, setWarehouseId] = useState("");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
-  const [includeZero, setIncludeZero] = useState(false);
+  const [includeZero, setIncludeZero] = useState(true);
 
   const stock = useApiResource(
     () => inventoryApi.stock({ warehouseId, q: query, includeZero }),
