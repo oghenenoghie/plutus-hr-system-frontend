@@ -20,7 +20,11 @@ import type {
   BankStatementLineCreateBody,
   BankStatementLineMatchBody,
   Benefit,
+  BenefitApplication,
+  BenefitApplicationCreateBody,
+  BenefitPlan,
   BenefitCreateBody,
+  LoanCreateBody,
   Bill,
   BillCreateBody,
   Branch,
@@ -139,6 +143,7 @@ import type {
   LedgerStatementLine,
   LedgerStatementLineImport,
   Loan,
+  LoanCreateBody,
   MembershipCreateBody,
   MembershipCreateOut,
   MembershipOut,
@@ -981,6 +986,9 @@ export const loansApi = {
   list: () => apiFetch<Loan[]>("/loans"),
   mine: () => apiFetch<Loan[]>("/loans/me"),
   get: (id: string) => apiFetch<Loan>(`/loans/${id}`),
+  request: (body: LoanCreateBody) => apiFetch<Loan>("/loans/me", { method: "POST", body }),
+  approve: (id: string) => apiFetch<Loan>(`/loans/${id}/approve`, { method: "POST" }),
+  reject: (id: string) => apiFetch<Loan>(`/loans/${id}/reject`, { method: "POST" }),
   cancel: (id: string) =>
     apiFetch<Loan>(`/loans/${id}/cancel`, { method: "POST" }),
 };
@@ -988,6 +996,13 @@ export const loansApi = {
 // --- benefits ---
 
 export const benefitsApi = {
+  plans: () => apiFetch<BenefitPlan[]>("/benefits/plans"),
+  availablePlans: () => apiFetch<BenefitPlan[]>("/benefits/plans/available"),
+  myApplications: () => apiFetch<BenefitApplication[]>("/benefits/applications/me"),
+  applications: () => apiFetch<BenefitApplication[]>("/benefits/applications"),
+  apply: (body: BenefitApplicationCreateBody) => apiFetch<BenefitApplication>("/benefits/applications/me", { method: "POST", body }),
+  approveApplication: (id: string, comment?: string) => apiFetch<BenefitApplication>(`/benefits/applications/${id}/approve`, { method: "POST", body: comment ? { comment } : {} }),
+  rejectApplication: (id: string, comment?: string) => apiFetch<BenefitApplication>(`/benefits/applications/${id}/reject`, { method: "POST", body: comment ? { comment } : {} }),
   forEmployee: (employeeId: string) =>
     apiFetch<Benefit[]>(`/benefits/employees/${employeeId}`),
   mine: () => apiFetch<Benefit[]>("/benefits/me"),

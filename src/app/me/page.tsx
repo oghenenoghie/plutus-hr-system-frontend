@@ -45,6 +45,16 @@ export default function MyWorkspacePage() {
   const expenses = useApiResource(() => expensesApi.mine());
   const loans = useApiResource(() => loansApi.mine());
   const benefits = useApiResource(() => benefitsApi.mine());
+  const benefitPlans = useApiResource(() => benefitsApi.availablePlans());
+  const benefitApplications = useApiResource(() => benefitsApi.myApplications());
+  const [loanPrincipal, setLoanPrincipal] = useState("");
+  const [loanInstallments, setLoanInstallments] = useState("6");
+  const [loanStartDate, setLoanStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [loanSubmitting, setLoanSubmitting] = useState(false);
+  const [benefitPlanId, setBenefitPlanId] = useState("");
+  const [benefitDate, setBenefitDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [benefitNote, setBenefitNote] = useState("");
+  const [benefitSubmitting, setBenefitSubmitting] = useState(false);
   const policies = useApiResource(() => policiesApi.list());
   const performanceReviews = useApiResource(() => performanceReviewsApi.me());
   const myEnrollments = useApiResource(() => trainingEnrollmentsApi.mine());
@@ -60,6 +70,44 @@ export default function MyWorkspacePage() {
   const { showToast } = useToast();
   const [clockActionPending, setClockActionPending] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
+
+  async function submitLoanRequest(event: React.FormEvent) {
+    event.preventDefault();
+    setLoanSubmitting(true);
+    try {
+      await loansApi.request({
+        principal_minor: Math.round(Number(loanPrincipal) * 100),
+        num_installments: Number(loanInstallments),
+        start_date: loanStartDate,
+      });
+      showToast("Loan request submitted for approval", "good");
+      setLoanPrincipal("");
+      loans.reload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Could not submit loan request.", "bad");
+    } finally {
+      setLoanSubmitting(false);
+    }
+  }
+
+  async function submitBenefitApplication(event: React.FormEvent) {
+    event.preventDefault();
+    setBenefitSubmitting(true);
+    try {
+      await benefitsApi.apply({
+        plan_id: benefitPlanId,
+        requested_effective_date: benefitDate,
+        note: benefitNote || null,
+      });
+      showToast("Benefit application submitted", "good");
+      setBenefitNote("");
+      benefitApplications.reload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Could not submit benefit application.", "bad");
+    } finally {
+      setBenefitSubmitting(false);
+    }
+  }
 
   async function onMyPhotoSelected(blob: Blob, consent: boolean) {
     setPhotoBusy(true);
@@ -309,6 +357,27 @@ export default function MyWorkspacePage() {
         </Card>
 
         <Card>
+          <CardHeader title="Request a Loan" subtitle="Submit a request for manager approval" />
+          <form onSubmit={submitLoanRequest} className="flex flex-col gap-3">
+            <div>
+              <Label htmlFor="loan-principal">Amount ({employee.data?.org_id ? "currency units" : "amount"})</Label>
+              <Input id="loan-principal" inputMode="decimal" type="number" min="1" step="0.01" required value={loanPrincipal} onChange={(event) => setLoanPrincipal(event.target.value)} placeholder="e.g. 150000" />
+            </div>
+            <div>
+              <Label htmlFor="loan-installments">Number of installments</Label>
+              <Input id="loan-installments" type="number" min="1" max="60" required value={loanInstallments} onChange={(event) => setLoanInstallments(event.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="loan-start-date">Requested start date</Label>
+              <Input id="loan-start-date" type="date" required value={loanStartDate} onChange={(event) => setLoanStartDate(event.target.value)} />
+            </div>
+            <Button type="submit" disabled={loanSubmitting || !loanPrincipal || Number(loanPrincipal) <= 0 || Number(loanInstallments) <= 0}>
+              {loanSubmitting ? "Submitting…" : "Submit Loan Request"}
+            </Button>
+          </form>
+        </Card>
+
+        <Card>
           <CardHeader title="Loans & Advances" />
           {loans.loading ? <LoadingState /> : null}
           {loans.error ? <ErrorState message={loans.error} /> : null}
@@ -335,6 +404,45 @@ export default function MyWorkspacePage() {
               </tbody>
             </Table>
           ) : null}
+        </Card>
+
+        <Card>
+          <CardHeader title="Apply for a Benefit" subtitle="Choose an available company benefit plan" />
+          {benefitPlans.loading ? <LoadingState /> : null}
+          {benefitPlans.error ? <ErrorState message={benefitPlans.error} /> : null}
+          {benefitPlans.data && benefitPlans.data.length === 0 ? <EmptyState label="No benefit plans are currently available." /> : null}
+          {benefitPlans.data && benefitPlans.data.length > 0 ? (
+            <form onSubmit={submitBenefitApplication} className="flex flex-col gap-3">
+              <div>
+                <Label htmlFor="benefit-plan">Benefit plan</Label>
+                <select id="benefit-plan" required value={benefitPlanId} onChange={(event) => setBenefitPlanId(event.target.value)} className="h-10 w-full rounded-control border border-border bg-surface px-3 text-[13px] text-ink">
+                  <option value="">Select a plan</option>
+                  {benefitPlans.data.map((plan) => <option key={plan.id} value={plan.id}>{plan.name} · {titleCase(plan.frequency)}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="benefit-date">Requested effective date</Label>
+                <Input id="benefit-date" type="date" required value={benefitDate} onChange={(event) => setBenefitDate(event.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="benefit-note">Note (optional)</Label>
+                <Input id="benefit-note" value={benefitNote} onChange={(event) => setBenefitNote(event.target.value)} placeholder="Add any relevant details" />
+              </div>
+              <Button type="submit" disabled={benefitSubmitting || !benefitPlanId}>{benefitSubmitting ? "Submitting…" : "Submit Application"}</Button>
+            </form>
+          ) : null}
+          <div className="mt-4 border-t border-border pt-3">
+            <div className="mb-2 text-[12px] font-bold text-ink">My applications</div>
+            {benefitApplications.loading ? <LoadingState /> : null}
+            {benefitApplications.error ? <ErrorState message={benefitApplications.error} /> : null}
+            {benefitApplications.data && benefitApplications.data.length === 0 ? <EmptyState label="You have not submitted any benefit applications." /> : null}
+            {(benefitApplications.data ?? []).map((application) => (
+              <div key={application.id} className="flex items-center justify-between gap-2 border-b border-border py-2 text-[12px]">
+                <span>Plan {application.plan_id.slice(0, 8)} · {formatDate(application.requested_effective_date)}</span>
+                <StatusBadge status={application.status} />
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card>

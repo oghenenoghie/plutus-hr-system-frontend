@@ -25,10 +25,22 @@ export default function BenefitsPage() {
   const [endingId, setEndingId] = useState<string | null>(null);
   const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [ending, setEnding] = useState(false);
+  const applications = useApiResource(() => benefitsApi.applications());
   const benefits = useApiResource(
     () => (employeeId ? benefitsApi.forEmployee(employeeId) : Promise.resolve([])),
     [employeeId],
   );
+
+  async function decideApplication(applicationId: string, approve: boolean) {
+    try {
+      if (approve) await benefitsApi.approveApplication(applicationId);
+      else await benefitsApi.rejectApplication(applicationId);
+      showToast(approve ? "Benefit application approved" : "Benefit application rejected", "good");
+      applications.reload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? String(err.detail ?? err.message) : "Action failed.", "bad");
+    }
+  }
 
   async function submitEnd(benefitId: string) {
     setEnding(true);
@@ -51,6 +63,35 @@ export default function BenefitsPage() {
         subtitle="Plan enrollment and employer cost per employee"
         action={employeeId ? <Button onClick={() => setAdding(true)}>Add Benefit</Button> : undefined}
       />
+
+      <Card className="mb-6">
+        <CardHeader title="Pending Benefit Applications" />
+        {applications.loading ? <LoadingState /> : null}
+        {applications.error ? <ErrorState message={applications.error} /> : null}
+        {applications.data && applications.data.filter((item) => item.status === "pending").length === 0 ? (
+          <EmptyState label="No pending benefit applications." />
+        ) : null}
+        {applications.data && applications.data.some((item) => item.status === "pending") ? (
+          <Table>
+            <Thead><tr><Th>Employee</Th><Th>Plan</Th><Th>Requested Effective</Th><Th>Note</Th><Th>Status</Th><Th align="right">Actions</Th></tr></Thead>
+            <tbody>
+              {applications.data.filter((item) => item.status === "pending").map((item) => (
+                <tr key={item.id}>
+                  <Td><span className="font-mono text-xs">{item.employee_id.slice(0, 8)}</span></Td>
+                  <Td><span className="font-mono text-xs">{item.plan_id.slice(0, 8)}</span></Td>
+                  <Td>{formatDate(item.requested_effective_date)}</Td>
+                  <Td>{item.note || "—"}</Td>
+                  <Td><span className="text-xs font-semibold">Pending</span></Td>
+                  <Td align="right"><div className="flex justify-end gap-2">
+                    <Button size="sm" onClick={() => decideApplication(item.id, true)}>Approve</Button>
+                    <Button size="sm" variant="secondary" onClick={() => decideApplication(item.id, false)}>Reject</Button>
+                  </div></Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : null}
+      </Card>
 
       <Card className="mb-6">
         <Label htmlFor="employee">Employee</Label>
@@ -120,6 +161,36 @@ export default function BenefitsPage() {
               ))}
             </tbody>
           </Table>
+        ) : null}
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader title="Benefit Applications" />
+        {applications.loading ? <LoadingState /> : null}
+        {applications.error ? <ErrorState message={applications.error} /> : null}
+        {!applications.loading && !applications.error && (applications.data ?? []).length === 0 ? (
+          <EmptyState label="No employee benefit applications have been submitted." />
+        ) : null}
+        {(applications.data ?? []).length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {(applications.data ?? []).map((application) => (
+              <div key={application.id} className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-border p-3">
+                <div>
+                  <div className="font-bold text-ink">Plan {application.plan_id}</div>
+                  <div className="text-[11px] text-ink-soft">Employee {application.employee_id} · Requested {formatDate(application.requested_effective_date)}</div>
+                  {application.note ? <p className="mt-1 text-[12px] text-ink-soft">{application.note}</p> : null}
+                  <div className="mt-1 text-[11px] font-bold uppercase text-ink-soft">{titleCase(application.status)}</div>
+                  {application.decision_note ? <p className="text-[11px] text-ink-soft">Decision: {application.decision_note}</p> : null}
+                </div>
+                {application.status === "pending" ? (
+                  <div className="flex gap-2">
+                    <Button size="md" onClick={() => decideApplication(application.id, true)}>Approve</Button>
+                    <Button size="md" variant="secondary" onClick={() => decideApplication(application.id, false)}>Reject</Button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
         ) : null}
       </Card>
 
