@@ -908,6 +908,14 @@ export interface LeaveBalance {
 
 // --- expenses ---
 
+export interface ExpenseCreateBody {
+  category: string;
+  description: string;
+  amount_minor: number;
+  expense_date: string;
+  receipt_url?: string | null;
+}
+
 export interface Expense {
   id: string;
   employee_id: string;

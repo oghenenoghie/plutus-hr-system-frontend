@@ -32,7 +32,7 @@ import {
   trainingEnrollmentsApi,
   unionMembershipsApi,
 } from "@/lib/api/endpoints";
-import { formatDate, formatDateTime, formatMoney, titleCase } from "@/lib/format";
+import { formatDate, formatDateTime, formatMoney, titleCase, toMinorUnits } from "@/lib/format";
 import { useApiResource } from "@/lib/hooks";
 import { employeeLines, isEnginePayslip } from "@/lib/payslip-lines";
 import type { PerformanceReview, Task, TrainingEnrollment } from "@/lib/types";
@@ -76,7 +76,7 @@ export default function MyWorkspacePage() {
     setLoanSubmitting(true);
     try {
       await loansApi.request({
-        principal_minor: Math.round(Number(loanPrincipal) * 100),
+        principal_minor: toMinorUnits(loanPrincipal),
         num_installments: Number(loanInstallments),
         start_date: loanStartDate,
       });
