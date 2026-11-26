@@ -26,7 +26,6 @@ export default function BenefitsPage() {
   const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [ending, setEnding] = useState(false);
   const applications = useApiResource(() => benefitsApi.applications());
-  const applications = useApiResource(() => benefitsApi.applications());
   const benefits = useApiResource(
     () => (employeeId ? benefitsApi.forEmployee(employeeId) : Promise.resolve([])),
     [employeeId],
