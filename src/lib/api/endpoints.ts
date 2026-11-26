@@ -85,6 +85,7 @@ import type {
   EmployeeHistoryEvent,
   EmployeeUpdateBody,
   Expense,
+  ExpenseCreateBody,
   FinalSettlement,
   FinalSettlementCreateBody,
   FixedAsset,
@@ -958,6 +959,7 @@ export const leaveApi = {
 export const expensesApi = {
   list: () => apiFetch<Expense[]>("/expenses"),
   mine: () => apiFetch<Expense[]>("/expenses/me"),
+  submit: (body: ExpenseCreateBody) => apiFetch<Expense>("/expenses/me", { method: "POST", body }),
   approve: (id: string) =>
     apiFetch<Expense>(`/expenses/${id}/approve`, { method: "POST" }),
   reject: (id: string) =>
