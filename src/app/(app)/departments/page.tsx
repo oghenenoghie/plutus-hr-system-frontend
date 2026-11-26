@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,18 @@ export default function DepartmentsPage() {
   const employees = useApiResource(() => employeesApi.list());
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Department | null>(null);
+  const [search, setSearch] = useState("");
 
   const employeesById = new Map((employees.data ?? []).map((employee) => [employee.id, employee]));
+  const departmentList = departments.data ?? [];
+  const assignedManagers = departmentList.filter((department) => Boolean(department.manager_id)).length;
+  const filteredDepartments = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase();
+    return departmentList.filter((department) => {
+      const manager = department.manager_id ? employeesById.get(department.manager_id)?.full_name ?? "" : "";
+      return !term || department.name.toLocaleLowerCase().includes(term) || manager.toLocaleLowerCase().includes(term);
+    });
+  }, [departmentList, employeesById, search]);
 
   return (
     <div>
@@ -32,13 +42,27 @@ export default function DepartmentsPage() {
         action={<Button onClick={() => setCreating(true)}>New Department</Button>}
       />
 
+      <section aria-label="Department overview" className="mb-4 grid gap-3 sm:grid-cols-3">
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Departments</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{departmentList.length}</p><p className="mt-1 text-[12px] text-ink-soft">Organisational units</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Managers assigned</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{assignedManagers}</p><p className="mt-1 text-[12px] text-ink-soft">Departments with a manager</p></Card>
+        <Card className="p-4"><p className="text-[11px] font-bold uppercase tracking-[0.03em] text-ink-soft">Needs assignment</p><p className="mt-2 text-2xl font-extrabold tabular-nums text-ink">{departmentList.length - assignedManagers}</p><p className="mt-1 text-[12px] text-ink-soft">Departments without a manager</p></Card>
+      </section>
+      <Card className="mb-4 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1"><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search department or manager" aria-label="Search departments by name or manager" /></div>
+          <div className="flex items-center justify-between gap-3"><span className="whitespace-nowrap text-[12px] font-bold text-ink-soft" aria-live="polite">{filteredDepartments.length} of {departmentList.length} departments</span>{search ? <Button size="md" variant="ghost" onClick={() => setSearch("")}>Clear search</Button> : null}</div>
+        </div>
+      </Card>
       <Card>
         {departments.loading ? <LoadingState /> : null}
         {departments.error ? <ErrorState message={departments.error} /> : null}
         {departments.data && departments.data.length === 0 ? (
           <EmptyState label="No departments on record yet." />
         ) : null}
-        {departments.data && departments.data.length > 0 ? (
+        {departments.data && departmentList.length > 0 && filteredDepartments.length === 0 ? (
+          <EmptyState label="No departments match your search. Try another name or manager, or clear the search." />
+        ) : null}
+        {departments.data && filteredDepartments.length > 0 ? (
           <Table>
             <Thead>
               <tr>
@@ -48,7 +72,7 @@ export default function DepartmentsPage() {
               </tr>
             </Thead>
             <tbody>
-              {departments.data.map((department) => {
+              {filteredDepartments.map((department) => {
                 const manager = department.manager_id ? employeesById.get(department.manager_id) : null;
                 return (
                   <tr key={department.id}>
