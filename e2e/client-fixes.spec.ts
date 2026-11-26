@@ -136,6 +136,59 @@ test("1. an employee without a TIN shows in a pay run, is named as the blocker, 
   await page.getByRole("button", { name: "PDF", exact: true }).click();
   const pdf = await download;
   expect(pdf.suggestedFilename()).toBe(`payslip-EMP-${RUN}-2026-11-30.pdf`);
+
+  // Every payroll PDF opens as a reviewable preview; only an explicit click prints.
+  const slips = await call<{ id: string; employee_id: string }[]>(
+    request,
+    "GET",
+    `/pay-runs/${run.id}/payslips`,
+  );
+  const payslip = slips.find((item) => item.employee_id === employee.id);
+  expect(payslip).toBeTruthy();
+
+  await page.evaluate(() => window.sessionStorage.removeItem("plutus.print.called"));
+  await page.goto(`/print/pay-runs/${run.id}`);
+  await expect(page.getByRole("heading", { name: "Payroll Register" })).toBeVisible();
+  await expect(page.getByText("Amaka Okafor")).toBeVisible();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBeNull();
+  await page.getByRole("button", { name: "Print" }).click();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBe("yes");
+
+  await page.evaluate(() => window.sessionStorage.removeItem("plutus.print.called"));
+  await page.goto(`/print/pay-runs/${run.id}/payslips/${payslip!.id}`);
+  await expect(page.getByRole("heading", { name: "Employee Payslip" })).toBeVisible();
+  await expect(page.getByText("Amaka Okafor")).toBeVisible();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBeNull();
+  await page.getByRole("button", { name: "Print" }).click();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBe("yes");
+
+  // Vendor bills and VAT reports use the same preview-first print workflow.
+  const vendor = await call<{ id: string }>(request, "POST", "/vendors", { name: "Preview Test Supplies" });
+  const bill = await call<{ id: string }>(request, "POST", "/bills", {
+    vendor_id: vendor.id,
+    bill_number: `PREVIEW-${RUN}`,
+    bill_date: "2026-11-02",
+    due_date: "2026-11-30",
+    expense_account_code: "contractor_expense",
+    amount_minor: 1_500_00,
+  });
+  await call(request, "POST", `/bills/${bill.id}/approve`);
+
+  await page.evaluate(() => window.sessionStorage.removeItem("plutus.print.called"));
+  await page.goto(`/print/bills/${bill.id}`);
+  await expect(page.getByRole("heading", { name: "Vendor Bill" })).toBeVisible();
+  await expect(page.getByText(`PREVIEW-${RUN}`)).toBeVisible();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBeNull();
+  await page.getByRole("button", { name: "Print" }).click();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBe("yes");
+
+  await page.evaluate(() => window.sessionStorage.removeItem("plutus.print.called"));
+  await page.goto("/print/vat-report?month=2026-11");
+  await expect(page.getByRole("heading", { name: "VAT Report" })).toBeVisible();
+  await expect(page.getByRole("main", { name: "Document preview" })).toBeVisible();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBeNull();
+  await page.getByRole("button", { name: "Print" }).click();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBe("yes");
 });
 
 test("2. an invoice charges VAT at 7.5% or a named rate and prints our TIN at the top right", async ({ request }) => {
