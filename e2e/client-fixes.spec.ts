@@ -54,8 +54,8 @@ test.beforeAll(async ({ browser, request }: { browser: Browser; request: APIRequ
     ([access, refresh]) => {
       window.localStorage.setItem("plutus.access_token", access);
       window.localStorage.setItem("plutus.refresh_token", refresh);
-      // The print pages open the print dialog on load.
-      window.print = () => {};
+      // Keep the print dialog closed in automation and record explicit Print clicks.
+      window.print = () => window.sessionStorage.setItem("plutus.print.called", "yes");
     },
     [tokens.access_token, tokens.refresh_token],
   );
@@ -188,13 +188,19 @@ test("2. an invoice charges VAT at 7.5% or a named rate and prints our TIN at th
   const balances = await call<{ account: string; balance_minor: number }[]>(request, "GET", "/general-ledger/trial-balance");
   expect(balances.find((line) => line.account === "vat_payable")?.balance_minor).toBe(-22_500_00);
 
-  // Printed: the TIN at the top right, then the VAT line and the total.
+  // Preview first: loading the document must not open the print dialog.
+  await page.evaluate(() => window.sessionStorage.removeItem("plutus.print.called"));
   await page.goto(`/print/invoices/${byName["VAT 7.5%"].id}`);
   const header = page.locator("header");
   await expect(header).toContainText("TIN");
   await expect(header).toContainText("21345678-0001");
   await expect(page.getByRole("cell", { name: "VAT 7.5%" })).toBeVisible();
   await expect(page.getByRole("cell", { name: "₦107,500" })).toBeVisible();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBeNull();
+
+  // Printing happens only after the user explicitly selects Print.
+  await page.getByRole("button", { name: "Print" }).click();
+  expect(await page.evaluate(() => window.sessionStorage.getItem("plutus.print.called"))).toBe("yes");
 });
 
 test("3. receiving goods against a purchase order puts them into stock in one step", async ({ request }) => {

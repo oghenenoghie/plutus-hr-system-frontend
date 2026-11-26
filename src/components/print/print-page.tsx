@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ErrorState, LoadingState } from "@/components/ui/data-state";
@@ -9,10 +8,8 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { AuthGate } from "@/lib/auth/auth-gate";
 import type { Role } from "@/lib/types";
 
-// A document laid out for paper (an invoice, a bill, a payroll register),
-// outside the app's sidebar and top bar. The browser's own print dialog
-// opens once the document has loaded, the same in a browser and in Plutus
-// Desktop; Back and Print stay on screen and never print.
+// A document preview laid out for paper, outside the app sidebar and top bar.
+// The user reviews it first and opens the browser print dialog with Print.
 export function PrintPage({
   title,
   subtitle,
@@ -61,36 +58,26 @@ function PrintBody({
 }) {
   const router = useRouter();
   const { user } = useAuth();
-  const printed = useRef(false);
-
-  useEffect(() => {
-    if (!ready || printed.current) return;
-    printed.current = true;
-    // After the browser has laid the document out.
-    const timer = window.setTimeout(() => {
-      window.focus();
-      window.print();
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [ready]);
-
   return (
     <div className="min-h-screen bg-surface print:bg-white">
       <div className="mx-auto flex max-w-[900px] items-center justify-between gap-3 px-6 pt-6 print:hidden">
         <Button variant="secondary" onClick={() => router.back()}>
           Back
         </Button>
-        <Button
-          onClick={() => {
-            window.focus();
-            window.print();
-          }}
-          disabled={!ready}
-        >
-          Print
-        </Button>
+        <div className="flex items-center gap-3">
+          <p className="hidden text-xs text-ink-soft sm:block">Review this document before printing.</p>
+          <Button
+            onClick={() => {
+              window.focus();
+              window.print();
+            }}
+            disabled={!ready}
+          >
+            Print
+          </Button>
+        </div>
       </div>
-      <main className="mx-auto max-w-[900px] px-6 py-8 text-ink print:max-w-none print:px-0 print:py-0">
+      <main aria-label="Document preview" className="mx-auto max-w-[900px] px-6 py-8 text-ink print:max-w-none print:px-0 print:py-0">
         <header className="mb-6 flex items-start justify-between gap-6 border-b-2 border-ink pb-4">
           <div>
             <p className="text-[18px] font-extrabold">{user?.org_name ?? ""}</p>
