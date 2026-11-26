@@ -1,7 +1,6 @@
 "use client";
 
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -79,7 +78,6 @@ export default function LoansPage() {
           <Table>
             <Thead>
               <tr>
-                <Th>Employee</Th>
                 <Th>Employee</Th>
                 <Th>Start</Th>
                 <Th align="right">Principal</Th>
