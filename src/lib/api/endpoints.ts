@@ -143,7 +143,6 @@ import type {
   LedgerStatementLine,
   LedgerStatementLineImport,
   Loan,
-  LoanCreateBody,
   MembershipCreateBody,
   MembershipCreateOut,
   MembershipOut,
