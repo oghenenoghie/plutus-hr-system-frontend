@@ -24,6 +24,7 @@ import type {
   BenefitApplicationCreateBody,
   BenefitPlan,
   BenefitCreateBody,
+  LoanCreateBody,
   Bill,
   BillCreateBody,
   Branch,
@@ -983,9 +984,6 @@ export const overtimeApi = {
 
 export const loansApi = {
   list: () => apiFetch<Loan[]>("/loans"),
-  request: (body: LoanCreateBody) => apiFetch<Loan>("/loans/me", { method: "POST", body }),
-  approve: (id: string) => apiFetch<Loan>(`/loans/${id}/approve`, { method: "POST" }),
-  reject: (id: string) => apiFetch<Loan>(`/loans/${id}/reject`, { method: "POST" }),
   mine: () => apiFetch<Loan[]>("/loans/me"),
   get: (id: string) => apiFetch<Loan>(`/loans/${id}`),
   request: (body: LoanCreateBody) => apiFetch<Loan>("/loans/me", { method: "POST", body }),
