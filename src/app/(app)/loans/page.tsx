@@ -61,7 +61,7 @@ export default function LoansPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button size="md" onClick={() => decide(loan.id, true)}>Approve</Button>
-                  <Button size="md" variant="danger" onClick={() => decide(loan.id, false)}>Reject</Button>
+                  <Button size="md" variant="secondary" onClick={() => decide(loan.id, false)}>Reject</Button>
                 </div>
               </div>
             ))}
