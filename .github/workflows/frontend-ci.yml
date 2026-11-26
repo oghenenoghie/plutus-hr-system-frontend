@@ -32,3 +32,9 @@ jobs:
 
       - name: Production build and TypeScript validation
         run: npm run build
+
+      - name: Install Chromium for PDF preview regression test
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify PDF preview before printing
+        run: npm run test:print-preview
