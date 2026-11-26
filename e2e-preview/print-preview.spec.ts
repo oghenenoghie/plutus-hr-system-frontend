@@ -80,7 +80,7 @@ test("Cloud PDF preview waits for the user to choose Print / Save as PDF", async
   await page.goto("/print/vat-report?month=2026-11");
   await expect(page.getByRole("main", { name: "Document preview" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "VAT Report" })).toBeVisible();
-  await expect(page.getByText("Output VAT")).toBeVisible();
+  await expect(page.getByText("Output VAT").first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Print / Save as PDF" })).toBeEnabled();
 
   await page.waitForTimeout(500);
