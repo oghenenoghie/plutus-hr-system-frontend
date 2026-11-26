@@ -156,7 +156,7 @@ export default function BenefitsPage() {
                 {application.status === "pending" ? (
                   <div className="flex gap-2">
                     <Button size="md" onClick={() => decideApplication(application.id, true)}>Approve</Button>
-                    <Button size="md" variant="danger" onClick={() => decideApplication(application.id, false)}>Reject</Button>
+                    <Button size="md" variant="secondary" onClick={() => decideApplication(application.id, false)}>Reject</Button>
                   </div>
                 ) : null}
               </div>
