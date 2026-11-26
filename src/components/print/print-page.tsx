@@ -73,7 +73,7 @@ function PrintBody({
             }}
             disabled={!ready}
           >
-            Print
+            Print / Save as PDF
           </Button>
         </div>
       </div>
